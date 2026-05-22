@@ -90,7 +90,11 @@ class AffiliateController extends Controller
     {
         abort_unless($affiliate->photo_path && Storage::disk('local')->exists($affiliate->photo_path), 404);
 
-        return response()->file(Storage::disk('local')->path($affiliate->photo_path));
+        return response()->file(Storage::disk('local')->path($affiliate->photo_path), [
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 
     public function destroy(Affiliate $affiliate): RedirectResponse
@@ -132,12 +136,15 @@ class AffiliateController extends Controller
             ->values()
             ->all();
 
-        if ($request->hasFile('photo')) {
-            if ($affiliate?->photo_path) {
-                Storage::disk('local')->delete($affiliate->photo_path);
+        if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
+            $oldPhotoPath = $affiliate?->photo_path;
+            $newPhotoPath = $request->file('photo')->store('afiliados/fotografias', 'local');
+
+            if ($oldPhotoPath) {
+                Storage::disk('local')->delete($oldPhotoPath);
             }
 
-            $data['photo_path'] = $request->file('photo')->store('afiliados/fotografias', 'local');
+            $data['photo_path'] = $newPhotoPath;
         }
 
         return $data;

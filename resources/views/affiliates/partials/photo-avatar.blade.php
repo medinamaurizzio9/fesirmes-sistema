@@ -5,9 +5,10 @@
 @endphp
 
 @if ($affiliate->photo_path)
-    <img src="{{ route('afiliados.photo', $affiliate) }}" alt="Fotografia de {{ $affiliate->full_name }}" class="{{ $sizeClasses }} rounded-md object-cover ring-1 ring-slate-200">
+    <img src="{{ route('afiliados.photo', ['affiliate' => $affiliate, 'v' => $affiliate->updated_at?->timestamp, 'p' => md5($affiliate->photo_path)]) }}" alt="Fotografia de {{ $affiliate->full_name }}" class="{{ $sizeClasses }} rounded-md object-cover ring-1 ring-slate-200" data-photo-preview>
 @else
-    <div class="{{ $sizeClasses }} {{ $textClasses }} flex items-center justify-center rounded-md bg-cyan-50 font-bold text-cyan-800 ring-1 ring-cyan-100">
+    <div class="{{ $sizeClasses }} {{ $textClasses }} flex items-center justify-center rounded-md bg-cyan-50 font-bold text-cyan-800 ring-1 ring-cyan-100" data-photo-placeholder>
         {{ $initials }}
     </div>
+    <img src="" alt="Vista previa de fotografia" class="{{ $sizeClasses }} hidden rounded-md object-cover ring-1 ring-slate-200" data-photo-preview>
 @endif

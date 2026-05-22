@@ -4,7 +4,10 @@
     <aside class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-slate-950 transition-transform duration-200 lg:translate-x-0" :class="{ 'translate-x-0': sidebarOpen }">
         <div class="flex h-16 items-center justify-between border-b border-white/10 px-5">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-                <span class="flex h-9 w-9 items-center justify-center rounded-md bg-cyan-700 text-sm font-bold text-white">FE</span>
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/95 p-1.5 shadow-sm">
+                    <img src="{{ route('system.logo') }}" alt="Logo FESIRMES" class="h-full w-full object-contain" onerror="this.classList.add('hidden'); this.nextElementSibling.style.display = 'flex';">
+                    <span class="hidden h-full w-full items-center justify-center rounded-md bg-cyan-700 text-sm font-bold text-white" style="display: none;">FE</span>
+                </span>
                 <span>
                     <span class="block text-base font-bold tracking-wide text-white">FESIRMES</span>
                     <span class="block text-xs text-slate-400">Gestion institucional</span>
@@ -30,6 +33,14 @@
                 </svg>
                 Afiliados
             </a>
+            @if (auth()->user()->role->canModifyCi())
+                <a href="{{ route('settings.logo.edit') }}" class="sidebar-link {{ request()->routeIs('settings.*') ? 'sidebar-link-active' : '' }}">
+                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.6-4.6a2 2 0 0 1 2.8 0L16 16m-2-2 1.6-1.6a2 2 0 0 1 2.8 0L20 14m-16 5h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1Zm3-10h.01" />
+                    </svg>
+                    Logo institucional
+                </a>
+            @endif
         </nav>
 
         <div class="border-t border-white/10 p-4">
@@ -50,7 +61,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
             </svg>
         </button>
-        <a href="{{ route('dashboard') }}" class="text-base font-bold text-slate-950">FESIRMES</a>
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-2 text-base font-bold text-slate-950">
+            <span class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+                <img src="{{ route('system.logo') }}" alt="Logo FESIRMES" class="h-full w-full object-contain" onerror="this.classList.add('hidden');">
+            </span>
+            FESIRMES
+        </a>
         <span class="rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-semibold text-cyan-800">{{ auth()->user()->role->value }}</span>
     </div>
 </div>

@@ -231,7 +231,7 @@
     @include('affiliates.partials.photo-avatar', ['affiliate' => $affiliate, 'size' => 'h-24 w-24', 'text' => 'text-2xl'])
     <div>
         <label class="input-label" for="photo">Cargar o cambiar fotografia</label>
-        <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="input-field file:mr-4 file:rounded-md file:border-0 file:bg-cyan-800 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white">
+        <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="input-field file:mr-4 file:rounded-md file:border-0 file:bg-cyan-800 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" data-photo-input>
         @error('photo')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
     </div>
 </div>

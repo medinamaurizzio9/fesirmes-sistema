@@ -8,6 +8,9 @@
             </div>
             <div class="flex flex-col gap-2 sm:flex-row">
                 <a href="{{ route('afiliados.index') }}" class="btn-secondary">Volver</a>
+                <a href="{{ route('afiliados.credential.show', $affiliate) }}" class="btn-secondary">Ver credencial</a>
+                <a href="{{ route('afiliados.credential.show', ['affiliate' => $affiliate, 'descargar_png' => 1]) }}" class="btn-secondary">Descargar PNG</a>
+                <a href="{{ route('afiliados.credential.print', $affiliate) }}" class="btn-secondary" target="_blank">Imprimir credencial</a>
                 @if (auth()->user()->role->canManageAffiliates())
                     <a href="{{ route('afiliados.edit', $affiliate) }}" class="btn-primary">Editar</a>
                 @endif

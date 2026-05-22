@@ -68,4 +68,82 @@
     .sidebar-link-active {
         @apply bg-cyan-700 text-white shadow-sm;
     }
+
+    .credential-preview {
+        @apply inline-block rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200;
+    }
+
+    .credential-card {
+        @apply relative h-[204px] w-[324px] overflow-hidden rounded-lg border border-slate-300 bg-white text-slate-950;
+    }
+
+    .credential-card::before {
+        content: "";
+        @apply absolute left-0 top-0 h-2 w-full bg-cyan-800;
+    }
+
+    .credential-brand {
+        @apply flex items-center gap-3 px-4 pb-1.5 pt-3.5;
+    }
+
+    .credential-logo {
+        @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-cyan-800 text-sm font-bold text-white;
+    }
+
+    .credential-logo-img {
+        @apply h-10 w-10 shrink-0 rounded-md object-contain;
+    }
+
+    .credential-title {
+        @apply text-[15px] font-bold tracking-wide text-slate-950;
+    }
+
+    .credential-subtitle {
+        @apply text-[9px] font-semibold uppercase tracking-wide text-slate-500;
+    }
+
+    .credential-body {
+        @apply grid grid-cols-[78px_1fr_74px] gap-2 px-4 pt-0.5;
+    }
+
+    .credential-photo img,
+    .credential-avatar {
+        @apply h-24 w-20 rounded-md border border-slate-300 object-cover;
+    }
+
+    .credential-avatar {
+        @apply flex items-center justify-center bg-cyan-50 text-xl font-bold text-cyan-800;
+    }
+
+    .credential-label {
+        @apply text-[9px] font-bold uppercase tracking-wide text-slate-500;
+    }
+
+    .credential-name {
+        @apply mt-1 text-sm font-bold uppercase leading-tight text-slate-950;
+    }
+
+    .credential-grid {
+        @apply mt-3 space-y-2;
+    }
+
+    .credential-value {
+        @apply mt-0.5 text-xs font-bold text-slate-950;
+    }
+
+    .credential-qr {
+        @apply text-center;
+    }
+
+    .credential-qr img {
+        @apply mx-auto h-20 w-20;
+    }
+
+    .credential-qr-text {
+        @apply mt-1 text-[9px] font-bold uppercase tracking-wide text-slate-500;
+    }
+
+    .credential-footer {
+        @apply absolute bottom-2 left-4 right-4 flex justify-between border-t border-slate-200 pt-1 text-[9px] font-medium text-slate-500;
+    }
 }

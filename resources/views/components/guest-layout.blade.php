@@ -11,7 +11,10 @@
     <main class="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
         <div class="w-full max-w-md">
             <div class="mb-8 text-center">
-                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-800 text-base font-bold text-white shadow-sm">FE</div>
+                <div class="mx-auto flex h-[84px] w-[84px] items-center justify-center rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
+                    <img src="{{ route('system.logo') }}" alt="Logo FESIRMES" class="h-full w-full object-contain" onerror="this.classList.add('hidden'); this.nextElementSibling.style.display = 'flex';">
+                    <div class="hidden h-full w-full items-center justify-center rounded-lg bg-cyan-800 text-lg font-bold text-white" style="display: none;">FE</div>
+                </div>
                 <h1 class="mt-4 text-3xl font-bold tracking-tight text-slate-950">FESIRMES</h1>
                 <p class="mt-2 text-sm text-slate-600">Sistema institucional de afiliados</p>
             </div>
