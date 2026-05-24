@@ -11,6 +11,13 @@ class Affiliate extends Model
 {
     use HasFactory;
 
+    public const ITEM_TYPES = [
+        'SEDES',
+        'MINISTERIAL',
+        'INLASA',
+        'SEDEGES',
+    ];
+
     protected $fillable = [
         'ci',
         'nombres',
@@ -82,6 +89,11 @@ class Affiliate extends Model
         ])->filter()->implode(' '));
 
         return $newName !== '' ? $newName : trim($this->first_name.' '.$this->last_name);
+    }
+
+    public static function itemTypes(): array
+    {
+        return self::ITEM_TYPES;
     }
 
     public function credential(): HasOne

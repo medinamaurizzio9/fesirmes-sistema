@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Affiliate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -50,7 +51,7 @@ class StoreAffiliateRequest extends FormRequest
             'red_salud' => ['nullable', 'string', 'max:255'],
             'item_principal' => ['nullable', 'string', 'max:100', 'unique:affiliates,item_principal'],
             'item_secundario' => ['nullable', 'string', 'max:100'],
-            'tipo_item' => ['nullable', Rule::in(['SEDES', 'MINISTERIAL'])],
+            'tipo_item' => ['nullable', Rule::in(Affiliate::itemTypes())],
             'fecha_ingreso_sistema' => ['nullable', 'date'],
             'fecha_primer_descuento_fesirmes' => ['nullable', 'date'],
             'tematica_capacitacion' => ['nullable', 'string', 'max:1000'],

@@ -33,6 +33,12 @@
                 </svg>
                 Afiliados
             </a>
+            <a href="{{ route('actividades.index') }}" class="sidebar-link {{ request()->routeIs('actividades.*') ? 'sidebar-link-active' : '' }}">
+                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 10h.01M12 15h.01M16 15h.01" />
+                </svg>
+                Actividades
+            </a>
             @if (auth()->user()->role->canModifyCi())
                 <a href="{{ route('settings.logo.edit') }}" class="sidebar-link {{ request()->routeIs('settings.*') ? 'sidebar-link-active' : '' }}">
                     <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

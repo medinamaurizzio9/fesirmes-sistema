@@ -37,7 +37,7 @@ return new class extends Migration
             $table->string('red_salud')->nullable()->after('lugar_trabajo');
             $table->string('item_principal')->nullable()->unique()->after('red_salud');
             $table->string('item_secundario')->nullable()->after('item_principal');
-            $table->enum('tipo_item', ['SEDES', 'MINISTERIAL'])->nullable()->after('item_secundario');
+            $table->enum('tipo_item', ['SEDES', 'MINISTERIAL', 'INLASA', 'SEDEGES'])->nullable()->after('item_secundario');
             $table->date('fecha_ingreso_sistema')->nullable()->after('tipo_item');
             $table->date('fecha_primer_descuento_fesirmes')->nullable()->after('fecha_ingreso_sistema');
             $table->text('tematica_capacitacion')->nullable()->after('fecha_primer_descuento_fesirmes');

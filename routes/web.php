@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AffiliateController;
+use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CredentialController;
 use App\Http\Controllers\DashboardController;
@@ -18,6 +20,32 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/actividades/reporte/general', [ActivityController::class, 'generalReport'])
+        ->middleware('role:Administrador,SecretarÃ­a,Consulta')
+        ->name('actividades.report.general');
+
+    Route::get('/actividades/{activity}/asistencias', [AttendanceController::class, 'index'])
+        ->middleware('role:Administrador,SecretarÃ­a,Consulta')
+        ->name('actividades.asistencias.index');
+    Route::get('/actividades/{activity}/asistencias/importar', [AttendanceController::class, 'importForm'])
+        ->middleware('role:Administrador,SecretarÃ­a')
+        ->name('actividades.asistencias.import.form');
+    Route::post('/actividades/{activity}/asistencias/importar', [AttendanceController::class, 'import'])
+        ->middleware('role:Administrador,SecretarÃ­a')
+        ->name('actividades.asistencias.import');
+    Route::get('/actividades/{activity}/asistencias/reporte', [AttendanceController::class, 'report'])
+        ->middleware('role:Administrador,SecretarÃ­a,Consulta')
+        ->name('actividades.asistencias.report');
+    Route::get('/actividades/{activity}/asistencias/exportar', [AttendanceController::class, 'export'])
+        ->middleware('role:Administrador,SecretarÃ­a,Consulta')
+        ->name('actividades.asistencias.export');
+    Route::post('/actividades/{activity}/asistencias/revertir', [AttendanceController::class, 'revert'])
+        ->middleware('role:Administrador')
+        ->name('actividades.asistencias.revert');
+
+    Route::resource('actividades', ActivityController::class)
+        ->parameters(['actividades' => 'activity'])
+        ->middleware('role:Administrador,SecretarÃ­a,Consulta');
 
     Route::get('/configuracion/logo', [SystemLogoController::class, 'edit'])
         ->middleware('role:Administrador')

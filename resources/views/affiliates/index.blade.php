@@ -13,7 +13,7 @@
     </x-slot>
 
     <form method="GET" action="{{ route('afiliados.index') }}" class="panel mb-6 p-4">
-        <div class="grid gap-4 lg:grid-cols-[1fr_220px_auto_auto] lg:items-end">
+        <div class="grid gap-4 lg:grid-cols-[1fr_190px_190px_auto_auto] lg:items-end">
             <div>
                 <label class="input-label" for="buscar">Buscar</label>
                 <div class="relative">
@@ -29,6 +29,15 @@
                     <option value="">Todos</option>
                     @foreach ($statuses as $status)
                         <option value="{{ $status->value }}" @selected(request('estado') === $status->value)>{{ $status->label() }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="input-label" for="tipo_item">Tipo de item</label>
+                <select id="tipo_item" name="tipo_item" class="input-field">
+                    <option value="">Todos</option>
+                    @foreach ($itemTypes as $itemType)
+                        <option value="{{ $itemType }}" @selected(request('tipo_item') === $itemType)>{{ $itemType }}</option>
                     @endforeach
                 </select>
             </div>

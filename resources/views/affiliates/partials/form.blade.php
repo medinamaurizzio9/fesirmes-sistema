@@ -188,9 +188,11 @@
         <label class="input-label" for="tipo_item">Tipo de item</label>
         <select id="tipo_item" name="tipo_item" class="input-field">
             <option value="">Seleccionar</option>
-            <option value="SEDES" @selected(old('tipo_item', $affiliate->tipo_item) === 'SEDES')>SEDES</option>
-            <option value="MINISTERIAL" @selected(old('tipo_item', $affiliate->tipo_item) === 'MINISTERIAL')>MINISTERIAL</option>
+            @foreach ($itemTypes as $itemType)
+                <option value="{{ $itemType }}" @selected(old('tipo_item', $affiliate->tipo_item) === $itemType)>{{ $itemType }}</option>
+            @endforeach
         </select>
+        @error('tipo_item')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
     </div>
     <div>
         <label class="input-label" for="fecha_ingreso_sistema">Fecha de ingreso al sistema</label>

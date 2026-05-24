@@ -25,16 +25,19 @@ class AffiliateController extends Controller
                         ->orWhere('apellido_paterno', 'like', "%{$term}%")
                         ->orWhere('apellido_materno', 'like', "%{$term}%")
                         ->orWhere('item_principal', 'like', "%{$term}%")
+                        ->orWhere('tipo_item', 'like', "%{$term}%")
                         ->orWhere('first_name', 'like', "%{$term}%")
                         ->orWhere('last_name', 'like', "%{$term}%");
                 });
             })
             ->when($request->string('estado')->toString(), fn ($query, string $status) => $query->where('status', $status))
+            ->when($request->string('tipo_item')->toString(), fn ($query, string $tipoItem) => $query->where('tipo_item', $tipoItem))
             ->latest();
 
         return view('affiliates.index', [
             'affiliates' => $query->paginate(10)->withQueryString(),
             'statuses' => AffiliateStatus::cases(),
+            'itemTypes' => Affiliate::itemTypes(),
         ]);
     }
 
@@ -45,6 +48,7 @@ class AffiliateController extends Controller
         return view('affiliates.create', [
             'affiliate' => new Affiliate(['status' => AffiliateStatus::Activo]),
             'statuses' => AffiliateStatus::cases(),
+            'itemTypes' => Affiliate::itemTypes(),
         ]);
     }
 
@@ -71,6 +75,7 @@ class AffiliateController extends Controller
         return view('affiliates.edit', [
             'affiliate' => $affiliate,
             'statuses' => AffiliateStatus::cases(),
+            'itemTypes' => Affiliate::itemTypes(),
         ]);
     }
 

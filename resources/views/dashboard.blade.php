@@ -10,6 +10,27 @@
         </div>
     </x-slot>
 
+    <section class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="panel p-5">
+            <div class="text-sm font-semibold text-slate-500">Actividades realizadas</div>
+            <div class="mt-2 text-3xl font-bold text-slate-950">{{ $activitiesDone }}</div>
+        </div>
+        <div class="panel p-5">
+            <div class="text-sm font-semibold text-slate-500">Ultima actividad</div>
+            <div class="mt-2 text-lg font-bold text-slate-950">{{ $latestActivity?->nombre ?? 'Sin actividad' }}</div>
+            <div class="mt-1 text-sm text-slate-500">{{ $latestActivity?->fecha?->format('d/m/Y') }}</div>
+        </div>
+        <div class="panel p-5">
+            <div class="text-sm font-semibold text-slate-500">Promedio asistencia</div>
+            <div class="mt-2 text-3xl font-bold text-slate-950">{{ $averageAttendance }}%</div>
+        </div>
+        <div class="panel p-5">
+            <div class="text-sm font-semibold text-slate-500">Baja asistencia</div>
+            <div class="mt-2 text-3xl font-bold text-slate-950">{{ $lowAttendanceCount }}</div>
+            <div class="mt-1 text-sm text-slate-500">Afiliados bajo 50%</div>
+        </div>
+    </section>
+
     <section class="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
         <div class="panel overflow-hidden">
             <div class="border-b border-slate-200 bg-slate-50 px-5 py-4">
@@ -51,6 +72,10 @@
                         <span class="text-cyan-800">&rarr;</span>
                     </a>
                 @endif
+                <a href="{{ route('actividades.index') }}" class="flex items-center justify-between rounded-md border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-900">
+                    Gestionar actividades
+                    <span class="text-cyan-800">&rarr;</span>
+                </a>
             </div>
         </div>
     </section>
