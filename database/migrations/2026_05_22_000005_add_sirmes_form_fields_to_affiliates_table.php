@@ -35,7 +35,7 @@ return new class extends Migration
             $table->string('maestria_titulo')->nullable()->after('maestria_anio');
             $table->string('lugar_trabajo')->nullable()->after('maestria_titulo');
             $table->string('red_salud')->nullable()->after('lugar_trabajo');
-            $table->string('item_principal')->nullable()->unique()->after('red_salud');
+            $table->string('item_principal')->nullable()->after('red_salud');
             $table->string('item_secundario')->nullable()->after('item_principal');
             $table->enum('tipo_item', ['SEDES', 'MINISTERIAL', 'INLASA', 'SEDEGES'])->nullable()->after('item_secundario');
             $table->date('fecha_ingreso_sistema')->nullable()->after('tipo_item');
@@ -57,7 +57,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('affiliates', function (Blueprint $table) {
-            $table->dropUnique(['item_principal']);
             $table->dropColumn([
                 'nombres',
                 'apellido_paterno',

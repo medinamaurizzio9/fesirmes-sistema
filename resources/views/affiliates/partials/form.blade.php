@@ -195,6 +195,18 @@
         @error('tipo_item')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
     </div>
     <div>
+        <label class="input-label" for="sindicato_id">Sindicato</label>
+        <select id="sindicato_id" name="sindicato_id" class="input-field">
+            <option value="">Afiliado directo FESIRMES</option>
+            @foreach ($sindicatos as $sindicato)
+                <option value="{{ $sindicato->id }}" @selected((int) old('sindicato_id', $affiliate->sindicato_id) === $sindicato->id)>
+                    {{ $sindicato->sigla ? $sindicato->sigla.' - ' : '' }}{{ $sindicato->nombre }}
+                </option>
+            @endforeach
+        </select>
+        @error('sindicato_id')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+    </div>
+    <div>
         <label class="input-label" for="fecha_ingreso_sistema">Fecha de ingreso al sistema</label>
         <input id="fecha_ingreso_sistema" name="fecha_ingreso_sistema" type="date" value="{{ old('fecha_ingreso_sistema', $affiliate->fecha_ingreso_sistema?->format('Y-m-d') ?? $affiliate->joined_at?->format('Y-m-d')) }}" class="input-field">
     </div>

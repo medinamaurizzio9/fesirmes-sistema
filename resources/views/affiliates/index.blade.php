@@ -13,7 +13,7 @@
     </x-slot>
 
     <form method="GET" action="{{ route('afiliados.index') }}" class="panel mb-6 p-4">
-        <div class="grid gap-4 lg:grid-cols-[1fr_190px_190px_auto_auto] lg:items-end">
+        <div class="grid gap-4 lg:grid-cols-[1fr_170px_170px_220px_auto_auto] lg:items-end">
             <div>
                 <label class="input-label" for="buscar">Buscar</label>
                 <div class="relative">
@@ -41,6 +41,15 @@
                     @endforeach
                 </select>
             </div>
+            <div>
+                <label class="input-label" for="sindicato_id">Sindicato</label>
+                <select id="sindicato_id" name="sindicato_id" class="input-field">
+                    <option value="">Todos</option>
+                    @foreach ($sindicatos as $sindicato)
+                        <option value="{{ $sindicato->id }}" @selected((int) request('sindicato_id') === $sindicato->id)>{{ $sindicato->sigla ?? $sindicato->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
             <button class="btn-primary w-full" type="submit">Filtrar</button>
             <a href="{{ route('afiliados.index') }}" class="btn-ghost w-full">Limpiar</a>
         </div>
@@ -62,6 +71,7 @@
                         <th class="px-5 py-3">Afiliado</th>
                         <th class="px-5 py-3">C.I.</th>
                         <th class="px-5 py-3">Nombre</th>
+                        <th class="px-5 py-3">Sindicato</th>
                         <th class="px-5 py-3">Estado</th>
                         <th class="px-5 py-3">Contacto / item</th>
                         <th class="px-5 py-3 text-right">Acciones</th>
@@ -78,6 +88,7 @@
                                 <div class="font-semibold text-slate-900">{{ $affiliate->full_name }}</div>
                                 <div class="text-xs text-slate-500">{{ $affiliate->lugar_trabajo ?? 'Afiliado #'.$affiliate->id }}</div>
                             </td>
+                            <td class="px-5 py-4 text-slate-600">{{ $affiliate->sindicato?->sigla ?? $affiliate->sindicato?->nombre ?? 'Sin sindicato' }}</td>
                             <td class="px-5 py-4">
                                 <span class="status-badge status-{{ $affiliate->status->value }}">{{ $affiliate->status->value }}</span>
                             </td>
@@ -98,7 +109,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-10 text-center text-slate-500">No hay afiliados con esos filtros.</td>
+                            <td colspan="7" class="px-5 py-10 text-center text-slate-500">No hay afiliados con esos filtros.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -119,6 +130,7 @@
                         <span class="status-badge status-{{ $affiliate->status->value }}">{{ $affiliate->status->value }}</span>
                     </div>
                     <div class="mt-3 text-sm text-slate-600">{{ $affiliate->celular ?? $affiliate->phone ?? $affiliate->email ?? 'Sin contacto' }}</div>
+                    <div class="mt-1 text-xs text-slate-500">Sindicato: {{ $affiliate->sindicato?->sigla ?? $affiliate->sindicato?->nombre ?? 'Sin sindicato' }}</div>
                     @if ($affiliate->item_principal)
                         <div class="mt-1 text-xs text-slate-500">Item principal: {{ $affiliate->item_principal }}</div>
                     @endif

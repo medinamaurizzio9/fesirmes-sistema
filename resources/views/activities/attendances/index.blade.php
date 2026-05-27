@@ -8,13 +8,29 @@
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('actividades.show', $activity) }}" class="btn-secondary">Volver</a>
                 <a href="{{ route('actividades.asistencias.report', $activity) }}" class="btn-secondary">Reporte</a>
-                <a href="{{ route('actividades.asistencias.export', $activity) }}" class="btn-secondary">Exportar CSV</a>
+                <a href="{{ route('actividades.asistencias.export', ['activity' => $activity, 'sindicato_id' => request('sindicato_id')]) }}" class="btn-secondary">Exportar CSV</a>
                 @if (auth()->user()->role->canManageAffiliates())
                     <a href="{{ route('actividades.asistencias.import.form', $activity) }}" class="btn-primary">Importar CSV</a>
                 @endif
             </div>
         </div>
     </x-slot>
+
+    <form method="GET" action="{{ route('actividades.asistencias.index', $activity) }}" class="panel mb-6 p-4">
+        <div class="grid gap-4 md:grid-cols-[1fr_auto_auto] md:items-end">
+            <div>
+                <label class="input-label" for="sindicato_id">Filtrar por sindicato</label>
+                <select id="sindicato_id" name="sindicato_id" class="input-field">
+                    <option value="">Todos</option>
+                    @foreach ($sindicatos as $sindicato)
+                        <option value="{{ $sindicato->id }}" @selected((int) request('sindicato_id') === $sindicato->id)>{{ $sindicato->sigla ?? $sindicato->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <button class="btn-primary" type="submit">Filtrar</button>
+            <a href="{{ route('actividades.asistencias.index', $activity) }}" class="btn-ghost">Limpiar</a>
+        </div>
+    </form>
 
     <section class="mb-6 grid gap-4 sm:grid-cols-4">
         @foreach (['validos' => 'Validos', 'duplicados' => 'Duplicados', 'observados' => 'Observados', 'invalidos' => 'Invalidos'] as $key => $label)
@@ -62,6 +78,7 @@
                         <th class="px-5 py-3">Estado</th>
                         <th class="px-5 py-3">C.I.</th>
                         <th class="px-5 py-3">Afiliado</th>
+                        <th class="px-5 py-3">Sindicato</th>
                         <th class="px-5 py-3">Observacion</th>
                         <th class="px-5 py-3">Lote</th>
                     </tr>
@@ -72,11 +89,12 @@
                             <td class="px-5 py-4"><span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold capitalize">{{ $attendance->estado }}</span></td>
                             <td class="px-5 py-4 font-semibold">{{ $attendance->ci_detectado }}</td>
                             <td class="px-5 py-4">{{ $attendance->affiliate?->full_name ?? 'No vinculado' }}</td>
+                            <td class="px-5 py-4 text-slate-600">{{ $attendance->affiliate?->sindicato?->sigla ?? $attendance->affiliate?->sindicato?->nombre ?? 'Sin sindicato' }}</td>
                             <td class="px-5 py-4 text-slate-600">{{ $attendance->observacion }}</td>
                             <td class="px-5 py-4 text-xs text-slate-500">{{ $attendance->import_batch_id }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="px-5 py-10 text-center text-slate-500">Sin asistencias importadas.</td></tr>
+                        <tr><td colspan="6" class="px-5 py-10 text-center text-slate-500">Sin asistencias importadas.</td></tr>
                     @endforelse
                 </tbody>
             </table>

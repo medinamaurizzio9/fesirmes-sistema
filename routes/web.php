@@ -6,6 +6,8 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CredentialController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InternalReportController;
+use App\Http\Controllers\SindicatoController;
 use App\Http\Controllers\SystemLogoController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +22,40 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::prefix('reportes')->name('reportes.')->middleware('role:Administrador,SecretarÃ­a,Consulta')->group(function () {
+        Route::get('/', [InternalReportController::class, 'index'])->name('index');
+        Route::get('/padron', [InternalReportController::class, 'padron'])->name('padron');
+        Route::get('/padron/csv', [InternalReportController::class, 'padronCsv'])->name('padron.csv');
+        Route::get('/padron/pdf', [InternalReportController::class, 'padronPdf'])->name('padron.pdf');
+        Route::get('/calidad-datos', [InternalReportController::class, 'quality'])->name('quality');
+        Route::get('/calidad-datos/csv', [InternalReportController::class, 'qualityCsv'])->name('quality.csv');
+        Route::get('/calidad-datos/pdf', [InternalReportController::class, 'qualityPdf'])->name('quality.pdf');
+        Route::get('/sindicatos', [InternalReportController::class, 'sindicatos'])->name('sindicatos');
+        Route::get('/sindicatos/csv', [InternalReportController::class, 'sindicatosCsv'])->name('sindicatos.csv');
+        Route::get('/sindicatos/pdf', [InternalReportController::class, 'sindicatosPdf'])->name('sindicatos.pdf');
+        Route::get('/tipos-item', [InternalReportController::class, 'itemTypes'])->name('item-types');
+        Route::get('/tipos-item/csv', [InternalReportController::class, 'itemTypesCsv'])->name('item-types.csv');
+        Route::get('/tipos-item/pdf', [InternalReportController::class, 'itemTypesPdf'])->name('item-types.pdf');
+        Route::get('/asistencia-actividades', [InternalReportController::class, 'attendanceActivities'])->name('attendance.activities');
+        Route::get('/asistencia-actividades/csv', [InternalReportController::class, 'attendanceActivitiesCsv'])->name('attendance.activities.csv');
+        Route::get('/asistencia-actividades/pdf', [InternalReportController::class, 'attendanceActivitiesPdf'])->name('attendance.activities.pdf');
+        Route::get('/asistencia-historica', [InternalReportController::class, 'attendanceHistory'])->name('attendance.history');
+        Route::get('/asistencia-historica/csv', [InternalReportController::class, 'attendanceHistoryCsv'])->name('attendance.history.csv');
+        Route::get('/asistencia-historica/pdf', [InternalReportController::class, 'attendanceHistoryPdf'])->name('attendance.history.pdf');
+    });
+
+    Route::get('/sindicatos/reporte/general', [SindicatoController::class, 'report'])
+        ->middleware('role:Administrador,SecretarÃ­a,Consulta')
+        ->name('sindicatos.report.general');
+    Route::get('/sindicatos/reporte/asistencia', [SindicatoController::class, 'attendanceReport'])
+        ->middleware('role:Administrador,SecretarÃ­a,Consulta')
+        ->name('sindicatos.report.attendance');
+    Route::post('/sindicatos/{sindicato}/activar', [SindicatoController::class, 'activate'])
+        ->middleware('role:Administrador')
+        ->name('sindicatos.activate');
+    Route::resource('sindicatos', SindicatoController::class)
+        ->middleware('role:Administrador,SecretarÃ­a,Consulta');
+
     Route::get('/actividades/reporte/general', [ActivityController::class, 'generalReport'])
         ->middleware('role:Administrador,SecretarÃ­a,Consulta')
         ->name('actividades.report.general');

@@ -6,6 +6,7 @@ use App\Enums\AffiliateStatus;
 use App\Http\Requests\StoreAffiliateRequest;
 use App\Http\Requests\UpdateAffiliateRequest;
 use App\Models\Affiliate;
+use App\Models\Sindicato;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class AffiliateController extends Controller
     public function index(Request $request): View
     {
         $query = Affiliate::query()
+            ->with('sindicato')
             ->when($request->string('buscar')->toString(), function ($query, string $term) {
                 $query->where(function ($query) use ($term) {
                     $query->where('ci', 'like', "%{$term}%")
@@ -27,17 +29,22 @@ class AffiliateController extends Controller
                         ->orWhere('item_principal', 'like', "%{$term}%")
                         ->orWhere('tipo_item', 'like', "%{$term}%")
                         ->orWhere('first_name', 'like', "%{$term}%")
-                        ->orWhere('last_name', 'like', "%{$term}%");
+                        ->orWhere('last_name', 'like', "%{$term}%")
+                        ->orWhereHas('sindicato', fn ($subquery) => $subquery
+                            ->where('nombre', 'like', "%{$term}%")
+                            ->orWhere('sigla', 'like', "%{$term}%"));
                 });
             })
             ->when($request->string('estado')->toString(), fn ($query, string $status) => $query->where('status', $status))
             ->when($request->string('tipo_item')->toString(), fn ($query, string $tipoItem) => $query->where('tipo_item', $tipoItem))
+            ->when($request->integer('sindicato_id'), fn ($query, int $sindicatoId) => $query->where('sindicato_id', $sindicatoId))
             ->latest();
 
         return view('affiliates.index', [
             'affiliates' => $query->paginate(10)->withQueryString(),
             'statuses' => AffiliateStatus::cases(),
             'itemTypes' => Affiliate::itemTypes(),
+            'sindicatos' => Sindicato::orderBy('nombre')->get(),
         ]);
     }
 
@@ -49,6 +56,7 @@ class AffiliateController extends Controller
             'affiliate' => new Affiliate(['status' => AffiliateStatus::Activo]),
             'statuses' => AffiliateStatus::cases(),
             'itemTypes' => Affiliate::itemTypes(),
+            'sindicatos' => Sindicato::where('estado', 'activo')->orderBy('nombre')->get(),
         ]);
     }
 
@@ -59,12 +67,15 @@ class AffiliateController extends Controller
         $affiliate = Affiliate::create($data);
 
         AuditLogger::record('afiliado.creado', $affiliate, [], $affiliate->toArray());
+        AuditLogger::record('afiliado.sindicato_asignado', $affiliate, [], ['sindicato_id' => $affiliate->sindicato_id]);
 
         return redirect()->route('afiliados.show', $affiliate)->with('status', 'Afiliado creado correctamente.');
     }
 
     public function show(Affiliate $affiliate): View
     {
+        $affiliate->load('sindicato');
+
         return view('affiliates.show', compact('affiliate'));
     }
 
@@ -76,6 +87,10 @@ class AffiliateController extends Controller
             'affiliate' => $affiliate,
             'statuses' => AffiliateStatus::cases(),
             'itemTypes' => Affiliate::itemTypes(),
+            'sindicatos' => Sindicato::where('estado', 'activo')
+                ->orWhere('id', $affiliate->sindicato_id)
+                ->orderBy('nombre')
+                ->get(),
         ]);
     }
 
@@ -83,10 +98,15 @@ class AffiliateController extends Controller
     {
         $data = $this->affiliateData($request, $affiliate);
         $oldValues = $affiliate->only(array_keys($data));
+        $oldSindicatoId = $affiliate->sindicato_id;
 
         $affiliate->update($data);
 
         AuditLogger::record('afiliado.actualizado', $affiliate, $oldValues, $affiliate->fresh()->only(array_keys($data)));
+
+        if (array_key_exists('sindicato_id', $data) && (int) $oldSindicatoId !== (int) $data['sindicato_id']) {
+            AuditLogger::record('afiliado.sindicato_actualizado', $affiliate, ['sindicato_id' => $oldSindicatoId], ['sindicato_id' => $data['sindicato_id']]);
+        }
 
         return redirect()->route('afiliados.show', $affiliate)->with('status', 'Afiliado actualizado correctamente.');
     }
@@ -123,6 +143,7 @@ class AffiliateController extends Controller
     {
         $data = $request->validated();
         unset($data['photo']);
+        $data['sindicato_id'] = $data['sindicato_id'] ?? Sindicato::direct()->id;
 
         if ($request instanceof StoreAffiliateRequest) {
             $data['status'] = AffiliateStatus::Activo;

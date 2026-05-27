@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\AffiliateStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Affiliate extends Model
@@ -52,6 +53,7 @@ class Affiliate extends Model
         'item_principal',
         'item_secundario',
         'tipo_item',
+        'sindicato_id',
         'fecha_ingreso_sistema',
         'fecha_primer_descuento_fesirmes',
         'tematica_capacitacion',
@@ -99,5 +101,10 @@ class Affiliate extends Model
     public function credential(): HasOne
     {
         return $this->hasOne(AffiliateCredential::class);
+    }
+
+    public function sindicato(): BelongsTo
+    {
+        return $this->belongsTo(Sindicato::class);
     }
 }

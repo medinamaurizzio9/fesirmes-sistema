@@ -31,6 +31,22 @@
         </div>
     </section>
 
+    <section class="mb-6 grid gap-4 sm:grid-cols-3">
+        <div class="panel p-5">
+            <div class="text-sm font-semibold text-slate-500">Sindicatos activos</div>
+            <div class="mt-2 text-3xl font-bold text-slate-950">{{ $activeSindicatoCount }}</div>
+        </div>
+        <div class="panel p-5">
+            <div class="text-sm font-semibold text-slate-500">Afiliados directos FESIRMES</div>
+            <div class="mt-2 text-3xl font-bold text-slate-950">{{ $directAffiliatesCount }}</div>
+        </div>
+        <div class="panel p-5">
+            <div class="text-sm font-semibold text-slate-500">Sindicato con mas afiliados</div>
+            <div class="mt-2 text-lg font-bold text-slate-950">{{ $topSindicato?->sigla ?? $topSindicato?->nombre ?? 'Sin datos' }}</div>
+            <div class="mt-1 text-sm text-slate-500">{{ $topSindicato?->affiliates_count ?? 0 }} afiliados</div>
+        </div>
+    </section>
+
     <section class="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
         <div class="panel overflow-hidden">
             <div class="border-b border-slate-200 bg-slate-50 px-5 py-4">
@@ -74,6 +90,10 @@
                 @endif
                 <a href="{{ route('actividades.index') }}" class="flex items-center justify-between rounded-md border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-900">
                     Gestionar actividades
+                    <span class="text-cyan-800">&rarr;</span>
+                </a>
+                <a href="{{ route('sindicatos.index') }}" class="flex items-center justify-between rounded-md border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-900">
+                    Ver sindicatos
                     <span class="text-cyan-800">&rarr;</span>
                 </a>
             </div>

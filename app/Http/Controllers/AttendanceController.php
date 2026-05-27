@@ -6,6 +6,7 @@ use App\Http\Requests\ImportAttendanceRequest;
 use App\Models\Activity;
 use App\Models\Affiliate;
 use App\Models\Attendance;
+use App\Models\Sindicato;
 use App\Services\AttendanceCsvImporter;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
@@ -16,23 +17,27 @@ use Illuminate\View\View;
 
 class AttendanceController extends Controller
 {
-    public function index(Activity $activity): View
+    public function index(Activity $activity, Request $request): View
     {
+        $sindicatoId = $request->integer('sindicato_id');
         $attendances = $activity->attendances()
-            ->with('affiliate')
+            ->with('affiliate.sindicato')
             ->whereNull('reverted_at')
+            ->when($sindicatoId, fn ($query) => $query->whereHas('affiliate', fn ($subquery) => $subquery->where('sindicato_id', $sindicatoId)))
             ->latest('imported_at')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        $summary = $this->summary($activity);
+        $summary = $this->summary($activity, $sindicatoId);
         $batches = $activity->attendances()
             ->whereNull('reverted_at')
             ->selectRaw('import_batch_id, source_file_name, MIN(imported_at) as imported_at, COUNT(*) as total_rows')
             ->groupBy('import_batch_id', 'source_file_name')
             ->latest('imported_at')
             ->get();
+        $sindicatos = Sindicato::orderBy('nombre')->get();
 
-        return view('activities.attendances.index', compact('activity', 'attendances', 'summary', 'batches'));
+        return view('activities.attendances.index', compact('activity', 'attendances', 'summary', 'batches', 'sindicatos'));
     }
 
     public function importForm(Activity $activity): View
@@ -51,20 +56,39 @@ class AttendanceController extends Controller
         return view('activities.attendances.summary', compact('activity', 'summary'));
     }
 
-    public function report(Activity $activity): View
+    public function report(Activity $activity, Request $request): View
     {
-        $totalActivos = Affiliate::where('status', 'activo')->count();
-        $validos = $activity->attendances()->where('estado', 'valido')->whereNull('reverted_at')->with('affiliate')->get();
-        $revisiones = $activity->attendances()->whereIn('estado', ['invalido', 'observado', 'duplicado'])->whereNull('reverted_at')->with('affiliate')->get();
+        $sindicatoId = $request->integer('sindicato_id');
+        $totalActivos = Affiliate::where('status', 'activo')
+            ->when($sindicatoId, fn ($query) => $query->where('sindicato_id', $sindicatoId))
+            ->count();
+        $validos = $activity->attendances()
+            ->where('estado', 'valido')
+            ->whereNull('reverted_at')
+            ->when($sindicatoId, fn ($query) => $query->whereHas('affiliate', fn ($subquery) => $subquery->where('sindicato_id', $sindicatoId)))
+            ->with('affiliate.sindicato')
+            ->get();
+        $revisiones = $activity->attendances()
+            ->whereIn('estado', ['invalido', 'observado', 'duplicado'])
+            ->whereNull('reverted_at')
+            ->when($sindicatoId, fn ($query) => $query->whereHas('affiliate', fn ($subquery) => $subquery->where('sindicato_id', $sindicatoId)))
+            ->with('affiliate.sindicato')
+            ->get();
         $porcentaje = $totalActivos > 0 ? round(($validos->count() / $totalActivos) * 100, 2) : 0;
+        $sindicatos = Sindicato::orderBy('nombre')->get();
 
-        return view('activities.reports.show', compact('activity', 'totalActivos', 'validos', 'revisiones', 'porcentaje'));
+        return view('activities.reports.show', compact('activity', 'totalActivos', 'validos', 'revisiones', 'porcentaje', 'sindicatos'));
     }
 
-    public function export(Activity $activity)
+    public function export(Activity $activity, Request $request)
     {
-        $rows = $activity->attendances()->with('affiliate')->whereNull('reverted_at')->get();
-        $csv = "estado,ci,nombre,item,observacion\n";
+        $sindicatoId = $request->integer('sindicato_id');
+        $rows = $activity->attendances()
+            ->with('affiliate.sindicato')
+            ->whereNull('reverted_at')
+            ->when($sindicatoId, fn ($query) => $query->whereHas('affiliate', fn ($subquery) => $subquery->where('sindicato_id', $sindicatoId)))
+            ->get();
+        $csv = "estado,ci,nombre,item,sindicato,observacion\n";
 
         foreach ($rows as $attendance) {
             $csv .= implode(',', [
@@ -72,6 +96,7 @@ class AttendanceController extends Controller
                 $attendance->ci_detectado,
                 '"'.str_replace('"', '""', $attendance->affiliate?->full_name ?? '').'"',
                 '"'.str_replace('"', '""', $attendance->affiliate?->item_principal ?? '').'"',
+                '"'.str_replace('"', '""', $attendance->affiliate?->sindicato?->nombre ?? '').'"',
                 '"'.str_replace('"', '""', $attendance->observacion ?? '').'"',
             ])."\n";
         }
@@ -106,13 +131,17 @@ class AttendanceController extends Controller
         return redirect()->route('actividades.asistencias.index', $activity)->with('status', 'Importacion revertida sin borrar registros.');
     }
 
-    private function summary(Activity $activity): array
+    private function summary(Activity $activity, int $sindicatoId = 0): array
     {
+        $filter = fn ($query) => $query
+            ->whereNull('reverted_at')
+            ->when($sindicatoId, fn ($subquery) => $subquery->whereHas('affiliate', fn ($affiliateQuery) => $affiliateQuery->where('sindicato_id', $sindicatoId)));
+
         return [
-            'validos' => $activity->attendances()->where('estado', 'valido')->whereNull('reverted_at')->count(),
-            'duplicados' => $activity->attendances()->where('estado', 'duplicado')->whereNull('reverted_at')->count(),
-            'observados' => $activity->attendances()->where('estado', 'observado')->whereNull('reverted_at')->count(),
-            'invalidos' => $activity->attendances()->where('estado', 'invalido')->whereNull('reverted_at')->count(),
+            'validos' => $filter($activity->attendances())->where('estado', 'valido')->count(),
+            'duplicados' => $filter($activity->attendances())->where('estado', 'duplicado')->count(),
+            'observados' => $filter($activity->attendances())->where('estado', 'observado')->count(),
+            'invalidos' => $filter($activity->attendances())->where('estado', 'invalido')->count(),
         ];
     }
 

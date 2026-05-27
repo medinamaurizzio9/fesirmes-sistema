@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\Affiliate;
 use App\Models\Audit;
 use App\Models\Attendance;
+use App\Models\Sindicato;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -26,6 +27,9 @@ class DashboardController extends Controller
             'latestActivity' => Activity::latest('fecha')->first(),
             'averageAttendance' => $this->averageAttendance(),
             'lowAttendanceCount' => $this->lowAttendanceCount(),
+            'activeSindicatoCount' => Sindicato::where('estado', 'activo')->count(),
+            'directAffiliatesCount' => Affiliate::where('sindicato_id', Sindicato::direct()->id)->count(),
+            'topSindicato' => Sindicato::withCount('affiliates')->orderByDesc('affiliates_count')->first(),
         ]);
     }
 

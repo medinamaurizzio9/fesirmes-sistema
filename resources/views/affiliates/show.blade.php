@@ -166,6 +166,12 @@
                         <dd class="mt-1 text-slate-950">{{ $affiliate->item_secundario ?? 'Sin item secundario' }} - {{ $affiliate->tipo_item ?? 'Sin tipo' }}</dd>
                     </div>
                 </dl>
+                <dl class="border-t border-slate-100">
+                    <div class="p-5">
+                        <dt class="text-sm font-medium text-slate-500">Sindicato</dt>
+                        <dd class="mt-1 text-slate-950">{{ $affiliate->sindicato?->nombre ?? 'Sin sindicato asignado' }}</dd>
+                    </div>
+                </dl>
                 <dl class="grid gap-0 divide-y divide-slate-100 border-t border-slate-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
                     <div class="p-5">
                         <dt class="text-sm font-medium text-slate-500">Ingreso al sistema</dt>
