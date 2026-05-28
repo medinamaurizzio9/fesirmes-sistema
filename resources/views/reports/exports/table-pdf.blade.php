@@ -97,6 +97,46 @@
             font-size: 8px;
         }
 
+        .executive-alert {
+            margin: 8px 0 10px;
+            padding: 7px 8px;
+            border: 1px solid #bae6fd;
+            border-left: 4px solid #0284c7;
+            background: #f0f9ff;
+            color: #075985;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        .summary-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0 10px;
+        }
+
+        .summary-grid td {
+            width: 25%;
+            padding: 6px;
+            border: 1px solid #d6dee6;
+            background: #f8fafc;
+            vertical-align: top;
+        }
+
+        .summary-label {
+            color: #64748b;
+            font-size: 7px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .summary-value {
+            margin-top: 2px;
+            color: #0f172a;
+            font-size: 11px;
+            font-weight: bold;
+            word-wrap: break-word;
+        }
+
         .filters-title {
             font-weight: bold;
             color: #0f172a;
@@ -225,6 +265,27 @@
             <span class="muted">Sin filtros aplicados</span>
         @endforelse
     </section>
+
+    <section class="executive-alert">
+        PDF Ejecutivo: se muestran indicadores y hasta {{ min($detailLimit, $totalRecords) }} registros principales de {{ $totalRecords }}.
+        El detalle completo se encuentra disponible en CSV/Excel.
+    </section>
+
+    @if (! empty($summary))
+        <table class="summary-grid">
+            <tr>
+                @foreach ($summary as $label => $value)
+                    <td>
+                        <div class="summary-label">{{ $label }}</div>
+                        <div class="summary-value">{{ $value }}</div>
+                    </td>
+                    @if (($loop->iteration % 4) === 0 && ! $loop->last)
+                        </tr><tr>
+                    @endif
+                @endforeach
+            </tr>
+        </table>
+    @endif
 
     <main class="table-wrap">
         <table class="report-table">

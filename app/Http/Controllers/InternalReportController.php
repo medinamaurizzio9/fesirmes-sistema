@@ -21,6 +21,9 @@ use Illuminate\View\View;
 
 class InternalReportController extends Controller
 {
+    private const PDF_DETAIL_LIMIT = 150;
+    private const PDF_SUMMARY_THRESHOLD = 300;
+
     public function index(): View
     {
         return view('reports.index');
@@ -59,18 +62,20 @@ class InternalReportController extends Controller
         $this->authorizeExport();
         $this->auditExport('padron_general', 'pdf', $request);
 
-        $headers = ['Nombre', 'C.I.', 'Item', 'Tipo', 'Sindicato', 'Estado', 'Celular'];
-        $rows = $this->padronQuery($request)->limit(700)->get()->map(fn (Affiliate $affiliate) => [
+        $query = $this->padronQuery($request);
+        $totalRecords = (clone $query)->count();
+        $headers = ['Nombre', 'C.I.', 'Item', 'Tipo', 'Sindicato', 'Estado'];
+        $rows = (clone $query)->limit(self::PDF_DETAIL_LIMIT)->get()->map(fn (Affiliate $affiliate) => [
             $affiliate->full_name,
             $affiliate->ci,
             $affiliate->item_principal,
             $affiliate->tipo_item,
             $affiliate->sindicato?->sigla ?? $affiliate->sindicato?->nombre,
             $affiliate->status?->value,
-            $affiliate->celular ?? $affiliate->phone,
         ]);
+        $summary = $this->affiliateExecutiveSummary($request);
 
-        return $this->pdfDownload('padron-general-fesirmes.pdf', 'Padron general', $headers, $rows, $request, 'a4', 'landscape');
+        return $this->pdfDownload('padron-general-fesirmes.pdf', 'Padron general', $headers, $rows, $request, 'a4', 'landscape', $totalRecords, $summary);
     }
 
     public function quality(Request $request): View
@@ -114,8 +119,10 @@ class InternalReportController extends Controller
 
         $categories = $this->qualityCategories();
         $selected = $this->selectedQualityCategory($request, $categories);
+        $query = $this->qualityQuery($request, $selected)->with('sindicato');
+        $totalRecords = (clone $query)->count();
         $headers = ['Problema', 'Nombre', 'C.I.', 'Estado', 'Tipo', 'Sindicato'];
-        $rows = $this->qualityQuery($request, $selected)->with('sindicato')->limit(700)->get()->map(fn (Affiliate $affiliate) => [
+        $rows = (clone $query)->limit(self::PDF_DETAIL_LIMIT)->get()->map(fn (Affiliate $affiliate) => [
             $categories[$selected]['label'],
             $affiliate->full_name,
             $affiliate->ci,
@@ -123,8 +130,9 @@ class InternalReportController extends Controller
             $affiliate->tipo_item,
             $affiliate->sindicato?->sigla ?? $affiliate->sindicato?->nombre,
         ]);
+        $summary = $this->qualityExecutiveSummary($request);
 
-        return $this->pdfDownload('calidad-datos-fesirmes.pdf', 'Calidad de datos', $headers, $rows, $request, 'a4', 'landscape');
+        return $this->pdfDownload('calidad-datos-fesirmes.pdf', 'Calidad de datos', $headers, $rows, $request, 'a4', 'landscape', $totalRecords, $summary);
     }
 
     public function sindicatos(Request $request): View
@@ -162,7 +170,9 @@ class InternalReportController extends Controller
         $this->authorizeExport();
         $this->auditExport('por_sindicato', 'pdf', $request);
         $total = max($this->filteredAffiliatesForSindicatoReport($request)->count(), 1);
-        $rows = $this->sindicatoReportQuery($request)->limit(700)->get()->map(fn (Sindicato $sindicato) => [
+        $query = $this->sindicatoReportQuery($request);
+        $totalRecords = (clone $query)->count();
+        $rows = (clone $query)->limit(self::PDF_DETAIL_LIMIT)->get()->map(fn (Sindicato $sindicato) => [
             $sindicato->nombre,
             $sindicato->sigla,
             $sindicato->total_afiliados,
@@ -172,8 +182,13 @@ class InternalReportController extends Controller
             $sindicato->observados,
             round(($sindicato->total_afiliados / $total) * 100, 2).'%',
         ]);
+        $summary = [
+            'Total sindicatos' => $totalRecords,
+            'Total afiliados filtrados' => $this->filteredAffiliatesForSindicatoReport($request)->count(),
+            'Sindicatos activos' => (clone $query)->where('estado', 'activo')->count(),
+        ];
 
-        return $this->pdfDownload('reporte-sindicatos-fesirmes.pdf', 'Reporte por sindicato', ['Sindicato', 'Sigla', 'Total', 'Activos', 'Bajas', 'Susp.', 'Obs.', '%'], $rows, $request, 'a4', 'landscape');
+        return $this->pdfDownload('reporte-sindicatos-fesirmes.pdf', 'Reporte por sindicato', ['Sindicato', 'Sigla', 'Total', 'Activos', 'Bajas', 'Susp.', 'Obs.', '%'], $rows, $request, 'a4', 'landscape', $totalRecords, $summary);
     }
 
     public function itemTypes(Request $request): View
@@ -201,8 +216,12 @@ class InternalReportController extends Controller
         $this->auditExport('por_tipo_item', 'pdf', $request);
         $total = max($this->filteredAffiliatesForItemTypeReport($request)->count(), 1);
         $rows = $this->itemTypeRows($request)->map(fn (int $count, string $type) => [$type, $count, round(($count / $total) * 100, 2).'%']);
+        $summary = [
+            'Total afiliados filtrados' => $total,
+            'Tipos con registros' => $rows->filter(fn ($row) => (int) $row[1] > 0)->count(),
+        ];
 
-        return $this->pdfDownload('reporte-tipos-item-fesirmes.pdf', 'Reporte por tipo de item', ['Tipo item', 'Total', 'Porcentaje'], $rows, $request);
+        return $this->pdfDownload('reporte-tipos-item-fesirmes.pdf', 'Reporte por tipo de item', ['Tipo item', 'Total', 'Porcentaje'], $rows, $request, 'a4', 'portrait', $rows->count(), $summary);
     }
 
     public function attendanceActivities(Request $request): View
@@ -240,7 +259,9 @@ class InternalReportController extends Controller
         $this->authorizeExport();
         $this->auditExport('asistencia_por_actividad', 'pdf', $request);
         $activeAffiliates = $this->activeAffiliatesForAttendance($request);
-        $rows = $this->attendanceActivitiesQuery($request)->limit(700)->get()->map(fn (Activity $activity) => [
+        $query = $this->attendanceActivitiesQuery($request);
+        $totalRecords = (clone $query)->count();
+        $rows = (clone $query)->limit(self::PDF_DETAIL_LIMIT)->get()->map(fn (Activity $activity) => [
             $activity->nombre,
             $activity->fecha?->format('d/m/Y'),
             $activity->estado,
@@ -251,8 +272,13 @@ class InternalReportController extends Controller
             $activity->invalidos,
             ($activeAffiliates > 0 ? round(($activity->validos / $activeAffiliates) * 100, 2) : 0).'%',
         ]);
+        $summary = [
+            'Total actividades filtradas' => $totalRecords,
+            'Afiliados activos base' => $activeAffiliates,
+            'Actividades realizadas' => (clone $query)->where('estado', 'realizada')->count(),
+        ];
 
-        return $this->pdfDownload('asistencia-por-actividad-fesirmes.pdf', 'Asistencia por actividad', ['Actividad', 'Fecha', 'Estado', 'Activos', 'Val.', 'Dup.', 'Obs.', 'Inv.', '%'], $rows, $request, 'a4', 'landscape');
+        return $this->pdfDownload('asistencia-por-actividad-fesirmes.pdf', 'Asistencia por actividad', ['Actividad', 'Fecha', 'Estado', 'Activos', 'Val.', 'Dup.', 'Obs.', 'Inv.', '%'], $rows, $request, 'a4', 'landscape', $totalRecords, $summary);
     }
 
     public function attendanceHistory(Request $request): View
@@ -282,9 +308,15 @@ class InternalReportController extends Controller
         $this->authorizeExport();
         $this->auditExport('historico_asistencia_afiliado', 'pdf', $request);
         $report = $this->attendanceHistoryData($request, false);
-        $rows = $report['affiliates']->take(700)->map(fn (Affiliate $affiliate) => $this->attendanceHistoryRow($affiliate, $report['totalRealizadas'], $report['validCounts']));
+        $totalRecords = $report['affiliates']->count();
+        $rows = $report['affiliates']->take(self::PDF_DETAIL_LIMIT)->map(fn (Affiliate $affiliate) => $this->attendanceHistoryRow($affiliate, $report['totalRealizadas'], $report['validCounts']));
+        $summary = [
+            'Afiliados filtrados' => $totalRecords,
+            'Actividades realizadas' => $report['totalRealizadas'],
+            'Promedio asistencia' => $this->attendanceAverage($report['affiliates'], $report['totalRealizadas'], $report['validCounts']).'%',
+        ];
 
-        return $this->pdfDownload('historico-asistencia-afiliado-fesirmes.pdf', 'Historico de asistencia por afiliado', ['Nombre', 'C.I.', 'Item', 'Sindicato', 'Realizadas', 'Validas', '%'], $rows, $request, 'a4', 'landscape');
+        return $this->pdfDownload('historico-asistencia-afiliado-fesirmes.pdf', 'Historico de asistencia por afiliado', ['Nombre', 'C.I.', 'Item', 'Sindicato', 'Realizadas', 'Validas', '%'], $rows, $request, 'a4', 'landscape', $totalRecords, $summary);
     }
 
     private function padronQuery(Request $request): Builder
@@ -478,6 +510,40 @@ class InternalReportController extends Controller
         ];
     }
 
+    private function affiliateExecutiveSummary(Request $request): array
+    {
+        $query = $this->padronQuery($request);
+
+        return [
+            'Total registros filtrados' => (clone $query)->count(),
+            'Activos' => (clone $query)->where('status', 'activo')->count(),
+            'Bajas' => (clone $query)->where('status', 'baja')->count(),
+            'Suspendidos/observados' => (clone $query)->whereIn('status', ['suspendido', 'observado'])->count(),
+            'Sin fotografia' => (clone $query)->whereNull('photo_path')->count(),
+            'Sin celular' => (clone $query)->where(fn ($subquery) => $subquery->whereNull('celular')->orWhere('celular', ''))->count(),
+        ];
+    }
+
+    private function qualityExecutiveSummary(Request $request): array
+    {
+        $categories = $this->qualityCategories();
+
+        return collect($categories)
+            ->mapWithKeys(fn (array $category, string $key) => [$category['label'] => $this->qualityQuery($request, $key)->count()])
+            ->all();
+    }
+
+    private function attendanceAverage(Collection $affiliates, int $totalRealizadas, Collection $validCounts): float
+    {
+        if ($totalRealizadas === 0 || $affiliates->isEmpty()) {
+            return 0;
+        }
+
+        $sum = $affiliates->sum(fn (Affiliate $affiliate) => (($validCounts[$affiliate->id] ?? 0) / $totalRealizadas) * 100);
+
+        return round($sum / $affiliates->count(), 2);
+    }
+
     private function paginateCollection(Collection $items, int $perPage): LengthAwarePaginator
     {
         $page = Paginator::resolveCurrentPage();
@@ -515,12 +581,19 @@ class InternalReportController extends Controller
         ]);
     }
 
-    private function pdfDownload(string $filename, string $title, array $headers, Collection $rows, Request $request, string $paper = 'a4', string $orientation = 'portrait')
+    private function pdfDownload(string $filename, string $title, array $headers, Collection $rows, Request $request, string $paper = 'a4', string $orientation = 'portrait', ?int $totalRecords = null, array $summary = [])
     {
+        $totalRecords ??= $rows->count();
+        $isExecutive = $totalRecords > self::PDF_SUMMARY_THRESHOLD || count($headers) >= 7;
+
         $pdf = Pdf::loadView('reports.exports.table-pdf', [
             'title' => $title,
             'headers' => $headers,
             'rows' => $rows,
+            'totalRecords' => $totalRecords,
+            'detailLimit' => self::PDF_DETAIL_LIMIT,
+            'isExecutive' => $isExecutive,
+            'summary' => $summary,
             'filters' => $this->activeFilters($request),
             'generatedAt' => now(),
             'generatedBy' => auth()->user()?->name,
