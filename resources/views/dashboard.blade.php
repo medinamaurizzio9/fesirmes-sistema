@@ -3,8 +3,8 @@
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wide text-cyan-800">Panel principal</p>
-                <h1 class="mt-1 text-2xl font-bold text-slate-950">Dashboard</h1>
-                <p class="mt-1 text-sm text-slate-600">Resumen operativo de afiliados y movimientos recientes.</p>
+                <h1 class="mt-1 text-2xl font-bold text-slate-950">{{ $institution['institution_name'] ?? 'Dashboard' }}</h1>
+                <p class="mt-1 text-sm text-slate-600">{{ $institution['institution_subtitle'] ?? 'Resumen operativo de afiliados y movimientos recientes.' }}</p>
             </div>
             <a href="{{ route('afiliados.index') }}" class="btn-primary">Ver afiliados</a>
         </div>

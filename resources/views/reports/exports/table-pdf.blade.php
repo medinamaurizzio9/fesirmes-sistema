@@ -229,7 +229,7 @@
 </head>
 <body>
     <div class="footer">
-        <span class="footer-left">Sistema Institucional FESIRMES · {{ $year }}</span>
+        <span class="footer-left">{{ $institution['pdf_footer'] ?? 'Sistema Institucional FESIRMES' }} · {{ $year }}</span>
         <span class="footer-right page-number"></span>
     </div>
 
@@ -247,7 +247,7 @@
                 </td>
                 <td class="title-cell">
                     <h1>{{ $title }}</h1>
-                    <div class="subtitle">Federacion Sindical de Ramas Medicas de Salud Publica</div>
+                    <div class="subtitle">{{ $institution['institution_subtitle'] ?? 'Federacion Sindical de Ramas Medicas de Salud Publica' }}</div>
                     <div class="meta">
                         Generado: {{ $generatedAt->format('d/m/Y H:i') }}
                         &nbsp;|&nbsp; Usuario: {{ $generatedBy ?? 'Sistema' }}

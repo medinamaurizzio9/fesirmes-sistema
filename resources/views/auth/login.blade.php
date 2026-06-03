@@ -8,9 +8,9 @@
         @csrf
 
         <div>
-            <label class="input-label" for="email">Correo electronico</label>
-            <input id="email" name="email" type="email" value="{{ old('email') }}" class="input-field" required autofocus autocomplete="username">
-            @error('email')
+            <label class="input-label" for="login">Correo electronico o C.I.</label>
+            <input id="login" name="login" type="text" value="{{ old('login') }}" class="input-field" required autofocus autocomplete="username">
+            @error('login')
                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
@@ -29,11 +29,5 @@
         </label>
 
         <button class="btn-primary w-full" type="submit">Ingresar</button>
-
-        <div class="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
-            <p><strong>Pruebas:</strong> admin@fesirmes.local / password</p>
-            <p>secretaria@fesirmes.local / password</p>
-            <p>consulta@fesirmes.local / password</p>
-        </div>
     </form>
 </x-guest-layout>

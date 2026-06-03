@@ -238,6 +238,41 @@
                     @endif
                 </div>
             </section>
+
+            @if (auth()->user()->role->canModifyCi())
+                <section class="panel overflow-hidden">
+                    <div class="border-b border-slate-200 bg-slate-50 px-5 py-4">
+                        <h2 class="section-title">Usuario afiliado</h2>
+                    </div>
+                    <div class="space-y-3 p-5 text-sm">
+                        <div>
+                            <div class="text-slate-500">Usuario</div>
+                            <div class="font-semibold text-slate-950">{{ $affiliate->user?->email ?? 'Sin usuario generado' }}</div>
+                        </div>
+                        @if ($affiliate->user)
+                            <div>
+                                <div class="text-slate-500">Estado usuario</div>
+                                <div class="font-semibold text-slate-950">{{ $affiliate->user->is_blocked ? 'Bloqueado' : 'Activo' }}</div>
+                            </div>
+                        @endif
+                        <form method="POST" action="{{ route('afiliados.users.reset', $affiliate) }}">
+                            @csrf
+                            <button class="btn-secondary w-full" type="submit">Resetear contraseña</button>
+                        </form>
+                        @if ($affiliate->user?->is_blocked)
+                            <form method="POST" action="{{ route('afiliados.users.unblock', $affiliate) }}">
+                                @csrf
+                                <button class="btn-primary w-full" type="submit">Activar usuario</button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('afiliados.users.block', $affiliate) }}">
+                                @csrf
+                                <button class="btn-secondary w-full" type="submit">Bloquear usuario</button>
+                            </form>
+                        @endif
+                    </div>
+                </section>
+            @endif
         </aside>
     </div>
 </x-app-layout>

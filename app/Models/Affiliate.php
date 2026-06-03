@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Storage;
 
 class Affiliate extends Model
 {
@@ -17,6 +18,13 @@ class Affiliate extends Model
         'MINISTERIAL',
         'INLASA',
         'SEDEGES',
+    ];
+
+    public const RESTRICTED_PORTAL_STATUSES = [
+        'baja',
+        'suspendido',
+        'observado',
+        'inactivo',
     ];
 
     protected $fillable = [
@@ -93,6 +101,48 @@ class Affiliate extends Model
         return $newName !== '' ? $newName : trim($this->first_name.' '.$this->last_name);
     }
 
+    public function initials(): string
+    {
+        $first = $this->nombres ?: $this->first_name ?: $this->full_name ?: 'A';
+        $last = $this->apellido_paterno ?: $this->last_name ?: $this->apellido_materno ?: 'F';
+
+        return mb_strtoupper(mb_substr($first, 0, 1).mb_substr($last, 0, 1));
+    }
+
+    public function hasPhoto(): bool
+    {
+        return filled($this->photo_path) && Storage::disk('public')->exists($this->photo_path);
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (! $this->hasPhoto()) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->photo_path);
+    }
+
+    public function photoUrl(): ?string
+    {
+        return $this->photo_url;
+    }
+
+    public function portalStatusValue(): string
+    {
+        return strtolower((string) ($this->getRawOriginal('status') ?? $this->status?->value ?? ''));
+    }
+
+    public function hasRestrictedPortalAccess(): bool
+    {
+        return in_array($this->portalStatusValue(), self::RESTRICTED_PORTAL_STATUSES, true);
+    }
+
+    public function portalStatusLabel(): string
+    {
+        return mb_strtoupper($this->portalStatusValue() ?: 'sin estado');
+    }
+
     public static function itemTypes(): array
     {
         return self::ITEM_TYPES;
@@ -106,5 +156,10 @@ class Affiliate extends Model
     public function sindicato(): BelongsTo
     {
         return $this->belongsTo(Sindicato::class);
+    }
+
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class);
     }
 }

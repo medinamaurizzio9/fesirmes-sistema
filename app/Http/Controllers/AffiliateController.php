@@ -11,7 +11,6 @@ use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\View\View;
 
 class AffiliateController extends Controller
@@ -74,7 +73,7 @@ class AffiliateController extends Controller
 
     public function show(Affiliate $affiliate): View
     {
-        $affiliate->load('sindicato');
+        $affiliate->load('sindicato', 'user');
 
         return view('affiliates.show', compact('affiliate'));
     }
@@ -109,17 +108,6 @@ class AffiliateController extends Controller
         }
 
         return redirect()->route('afiliados.show', $affiliate)->with('status', 'Afiliado actualizado correctamente.');
-    }
-
-    public function photo(Affiliate $affiliate): BinaryFileResponse
-    {
-        abort_unless($affiliate->photo_path && Storage::disk('local')->exists($affiliate->photo_path), 404);
-
-        return response()->file(Storage::disk('local')->path($affiliate->photo_path), [
-            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma' => 'no-cache',
-            'Expires' => '0',
-        ]);
     }
 
     public function destroy(Affiliate $affiliate): RedirectResponse
@@ -164,10 +152,10 @@ class AffiliateController extends Controller
 
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
             $oldPhotoPath = $affiliate?->photo_path;
-            $newPhotoPath = $request->file('photo')->store('afiliados/fotografias', 'local');
+            $newPhotoPath = $request->file('photo')->store('afiliados/fotografias', 'public');
 
             if ($oldPhotoPath) {
-                Storage::disk('local')->delete($oldPhotoPath);
+                Storage::disk('public')->delete($oldPhotoPath);
             }
 
             $data['photo_path'] = $newPhotoPath;

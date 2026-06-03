@@ -14,18 +14,18 @@
         .credential-brand-text { display: table-cell; padding-left: 8px; vertical-align: middle; }
         .credential-title { font-size: 13px; font-weight: bold; letter-spacing: .5px; }
         .credential-subtitle { font-size: 6.8px; color: #64748b; text-transform: uppercase; }
-        .credential-body { display: table; width: 100%; padding: 4px 12px 0; }
+        .credential-body { display: table; width: 100%; padding: 3px 10px 0; table-layout: fixed; }
         .credential-photo, .credential-data, .credential-qr { display: table-cell; vertical-align: top; }
-        .credential-photo { width: 22mm; }
+        .credential-photo { width: 21mm; }
         .credential-photo img, .credential-avatar { width: 20mm; height: 24mm; object-fit: cover; border: 1px solid #cbd5e1; border-radius: 5px; }
         .credential-avatar { text-align: center; line-height: 24mm; color: #155e75; background: #ecfeff; font-size: 18px; font-weight: bold; }
-        .credential-data { width: 39mm; padding: 0 7px; }
+        .credential-data { width: 42mm; padding: 0 5px; }
         .credential-label { font-size: 6.3px; color: #64748b; text-transform: uppercase; font-weight: bold; }
         .credential-name { margin-top: 2px; font-size: 10.5px; line-height: 1.15; font-weight: bold; text-transform: uppercase; }
-        .credential-value { margin-top: 1px; font-size: 9px; font-weight: bold; }
-        .credential-grid { margin-top: 6px; }
-        .credential-grid div { margin-bottom: 5px; }
-        .credential-qr { width: 21mm; text-align: center; }
+        .credential-value { margin-top: 1px; font-size: 8.5px; line-height: 1.15; font-weight: bold; word-break: break-word; overflow-wrap: anywhere; }
+        .credential-grid { margin-top: 4px; }
+        .credential-grid div { margin-bottom: 3px; }
+        .credential-qr { width: 20mm; text-align: center; }
         .credential-qr img { width: 20mm; height: 20mm; }
         .credential-qr-text { font-size: 6px; color: #64748b; font-weight: bold; margin-top: 1px; }
         .credential-footer { position: absolute; left: 12px; right: 12px; bottom: 7px; border-top: 1px solid #e2e8f0; padding-top: 3px; font-size: 6px; color: #64748b; }
@@ -51,7 +51,7 @@
                 @if ($photoDataUri)
                     <img src="{{ $photoDataUri }}" alt="Fotografia">
                 @else
-                    <div class="credential-avatar">{{ mb_strtoupper(mb_substr($affiliate->full_name, 0, 2)) }}</div>
+                    <div class="credential-avatar">{{ $affiliate->initials() }}</div>
                 @endif
             </div>
             <div class="credential-data">

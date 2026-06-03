@@ -1,16 +1,20 @@
 <div>
+    @php($institution = \App\Models\SystemSetting::institutional())
     <div class="fixed inset-0 z-40 bg-slate-950/40 lg:hidden" x-show="sidebarOpen" x-cloak @click="sidebarOpen = false"></div>
 
     <aside class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-slate-950 transition-transform duration-200 lg:translate-x-0" :class="{ 'translate-x-0': sidebarOpen }">
         <div class="flex h-16 items-center justify-between border-b border-white/10 px-5">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
                 <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/95 p-1.5 shadow-sm">
-                    <img src="{{ route('system.logo') }}" alt="Logo FESIRMES" class="h-full w-full object-contain" onerror="this.classList.add('hidden'); this.nextElementSibling.style.display = 'flex';">
-                    <span class="hidden h-full w-full items-center justify-center rounded-md bg-cyan-700 text-sm font-bold text-white" style="display: none;">FE</span>
+                    @if ($institution['system_logo_url'])
+                        <img src="{{ $institution['system_logo_url'] }}" alt="Logo FESIRMES" class="h-full w-full object-contain">
+                    @else
+                        <span class="flex h-full w-full items-center justify-center rounded-md bg-cyan-700 text-sm font-bold text-white">FE</span>
+                    @endif
                 </span>
                 <span>
-                    <span class="block text-base font-bold tracking-wide text-white">FESIRMES</span>
-                    <span class="block text-xs text-slate-400">Gestion institucional</span>
+                    <span class="block text-base font-bold tracking-wide text-white">{{ $institution['institution_acronym'] }}</span>
+                    <span class="block text-xs text-slate-400">{{ $institution['institution_subtitle'] ?: 'Gestion institucional' }}</span>
                 </span>
             </a>
             <button class="rounded-md p-2 text-slate-300 hover:bg-white/10 lg:hidden" type="button" @click="sidebarOpen = false" aria-label="Cerrar menu">
@@ -21,6 +25,23 @@
         </div>
 
         <nav class="flex-1 space-y-1 px-4 py-5">
+            @if (auth()->user()->role->isAffiliate())
+                @php($affiliatePortalRestricted = auth()->user()->affiliate?->hasRestrictedPortalAccess())
+                <a href="{{ route('affiliate.profile') }}" class="sidebar-link {{ request()->routeIs('affiliate.profile') ? 'sidebar-link-active' : '' }}">
+                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" />
+                    </svg>
+                    Mi Perfil
+                </a>
+                @unless ($affiliatePortalRestricted)
+                <a href="{{ route('affiliate.password.edit') }}" class="sidebar-link {{ request()->routeIs('affiliate.password.*') ? 'sidebar-link-active' : '' }}">
+                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 11V8a4 4 0 0 1 8 0v3m-9 0h10v9H7v-9Z" />
+                    </svg>
+                    Mi Contraseña
+                </a>
+                @endunless
+            @else
             <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'sidebar-link-active' : '' }}">
                 <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-4H4v4Z" />
@@ -59,6 +80,7 @@
                     Logo institucional
                 </a>
             @endif
+            @endif
         </nav>
 
         <div class="border-t border-white/10 p-4">
@@ -81,9 +103,13 @@
         </button>
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2 text-base font-bold text-slate-950">
             <span class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-                <img src="{{ route('system.logo') }}" alt="Logo FESIRMES" class="h-full w-full object-contain" onerror="this.classList.add('hidden');">
+                @if ($institution['system_logo_url'])
+                    <img src="{{ $institution['system_logo_url'] }}" alt="Logo FESIRMES" class="h-full w-full object-contain">
+                @else
+                    <span class="flex h-full w-full items-center justify-center rounded-md bg-cyan-700 text-xs font-bold text-white">FE</span>
+                @endif
             </span>
-            FESIRMES
+            {{ $institution['institution_acronym'] }}
         </a>
         <span class="rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-semibold text-cyan-800">{{ auth()->user()->role->value }}</span>
     </div>

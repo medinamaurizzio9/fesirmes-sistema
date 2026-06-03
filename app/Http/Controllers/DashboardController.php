@@ -8,12 +8,22 @@ use App\Models\Affiliate;
 use App\Models\Audit;
 use App\Models\Attendance;
 use App\Models\Sindicato;
+use App\Models\SystemSetting;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(): View|RedirectResponse
     {
+        if (auth()->user()?->role?->isAffiliate()) {
+            $affiliate = auth()->user()->affiliate;
+
+            return redirect()->route($affiliate?->hasRestrictedPortalAccess() || ! auth()->user()->must_change_password
+                ? 'affiliate.profile'
+                : 'affiliate.password.edit');
+        }
+
         $statusCounts = collect(AffiliateStatus::cases())
             ->mapWithKeys(fn (AffiliateStatus $status) => [
                 $status->value => Affiliate::where('status', $status->value)->count(),
@@ -30,6 +40,7 @@ class DashboardController extends Controller
             'activeSindicatoCount' => Sindicato::where('estado', 'activo')->count(),
             'directAffiliatesCount' => Affiliate::where('sindicato_id', Sindicato::direct()->id)->count(),
             'topSindicato' => Sindicato::withCount('affiliates')->orderByDesc('affiliates_count')->first(),
+            'institution' => SystemSetting::institutional(),
         ]);
     }
 

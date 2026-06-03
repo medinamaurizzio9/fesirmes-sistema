@@ -8,7 +8,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class SystemLogoController extends Controller
@@ -16,47 +15,53 @@ class SystemLogoController extends Controller
     public function edit(): View
     {
         return view('settings.logo', [
-            'logoPath' => SystemSetting::getValue('system_logo_path'),
+            'logoPath' => SystemSetting::logoPath(),
+            'logoUrl' => SystemSetting::logoUrl(),
+            'settings' => SystemSetting::institutional(),
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'logo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'institution_name' => ['required', 'string', 'max:255'],
+            'institution_acronym' => ['required', 'string', 'max:50'],
+            'institution_subtitle' => ['nullable', 'string', 'max:255'],
+            'institution_address' => ['nullable', 'string', 'max:255'],
+            'institution_phones' => ['nullable', 'string', 'max:255'],
+            'institution_email' => ['nullable', 'email', 'max:255'],
+            'institution_website' => ['nullable', 'string', 'max:255'],
+            'pdf_footer' => ['nullable', 'string', 'max:255'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        $oldPath = SystemSetting::getValue('system_logo_path');
-        if ($oldPath) {
-            Storage::disk('local')->delete($oldPath);
+        $oldValues = SystemSetting::institutional();
+        foreach (array_keys(SystemSetting::DEFAULTS) as $key) {
+            SystemSetting::setValue($key, $validated[$key] ?? null);
         }
 
-        $path = $validated['logo']->store('sistema/logo', 'local');
-        SystemSetting::setValue('system_logo_path', $path);
+        $oldPath = SystemSetting::logoPath();
+        if ($request->hasFile('logo') && $oldPath) {
+            Storage::disk('public')->delete($oldPath);
+        }
 
-        AuditLogger::record('sistema.logo_actualizado', null, [
-            'logo_path' => $oldPath,
-        ], [
-            'logo_path' => $path,
-        ]);
+        $path = $oldPath;
+        if ($request->hasFile('logo')) {
+            $path = $validated['logo']->store('sistema/logo', 'public');
+            SystemSetting::setValue('system_logo_path', $path);
+        }
 
-        return redirect()->route('settings.logo.edit')->with('status', 'Logo institucional actualizado correctamente.');
-    }
+        AuditLogger::record('sistema.configuracion_actualizada', null, $oldValues, SystemSetting::institutional());
 
-    public function show(): BinaryFileResponse|Response
-    {
-        $path = SystemSetting::getValue('system_logo_path');
-        abort_unless($path && Storage::disk('local')->exists($path), 404);
-
-        return response()->file(Storage::disk('local')->path($path));
+        return redirect()->route('settings.logo.edit')->with('status', 'Configuracion institucional actualizada correctamente.');
     }
 
     public function downloadPng(): Response
     {
-        $path = SystemSetting::getValue('system_logo_path');
-        abort_unless($path && Storage::disk('local')->exists($path), 404);
+        $path = SystemSetting::logoPath();
+        abort_unless($path && Storage::disk('public')->exists($path), 404);
 
-        $png = $this->transparentPng(Storage::disk('local')->path($path));
+        $png = $this->transparentPng(Storage::disk('public')->path($path));
 
         return response($png, 200, [
             'Content-Type' => 'image/png',

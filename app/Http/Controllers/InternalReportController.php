@@ -16,7 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class InternalReportController extends Controller
@@ -599,6 +598,7 @@ class InternalReportController extends Controller
             'generatedBy' => auth()->user()?->name,
             'logoDataUri' => $this->systemLogoDataUri(),
             'year' => now()->year,
+            'institution' => SystemSetting::institutional(),
         ])->setPaper($paper, $orientation);
 
         return $pdf->download($filename);
@@ -641,15 +641,6 @@ class InternalReportController extends Controller
 
     private function systemLogoDataUri(): ?string
     {
-        $path = SystemSetting::getValue('system_logo_path');
-
-        if (! $path || ! Storage::disk('local')->exists($path)) {
-            return null;
-        }
-
-        $absolutePath = Storage::disk('local')->path($path);
-        $mime = mime_content_type($absolutePath) ?: 'image/png';
-
-        return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($absolutePath));
+        return SystemSetting::logoDataUri();
     }
 }

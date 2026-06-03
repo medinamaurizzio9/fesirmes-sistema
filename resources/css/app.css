@@ -103,7 +103,11 @@
     }
 
     .credential-body {
-        @apply grid grid-cols-[78px_1fr_74px] gap-2 px-4 pt-0.5;
+        @apply grid grid-cols-[72px_minmax(0,1fr)_70px] gap-2 px-3.5 pt-0.5;
+    }
+
+    .credential-data {
+        @apply min-w-0;
     }
 
     .credential-photo img,
@@ -120,15 +124,16 @@
     }
 
     .credential-name {
-        @apply mt-1 text-sm font-bold uppercase leading-tight text-slate-950;
+        @apply mt-1 break-words text-[13px] font-bold uppercase leading-tight text-slate-950;
     }
 
     .credential-grid {
-        @apply mt-3 space-y-2;
+        @apply mt-2 space-y-1.5;
     }
 
     .credential-value {
-        @apply mt-0.5 text-xs font-bold text-slate-950;
+        @apply mt-0.5 break-words text-[11px] font-bold leading-tight text-slate-950;
+        overflow-wrap: anywhere;
     }
 
     .credential-qr {

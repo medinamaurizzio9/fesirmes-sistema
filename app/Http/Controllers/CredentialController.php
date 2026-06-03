@@ -30,7 +30,28 @@ class CredentialController extends Controller
             'qrDataUri' => $qrCode->dataUri($credential->qr_payload),
             'photoDataUri' => $this->photoDataUri($affiliate),
             'logoDataUri' => $this->systemLogoDataUri(),
+            'institution' => SystemSetting::institutional(),
         ]);
+    }
+
+    public function showMine(CredentialQrCode $qrCode): View|RedirectResponse
+    {
+        $affiliate = auth()->user()?->affiliate;
+        abort_unless($affiliate, 403);
+
+        if ($affiliate->hasRestrictedPortalAccess()) {
+            AuditLogger::record('afiliado.acceso_restringido', $affiliate, [], [
+                'estado' => $affiliate->portalStatusValue(),
+                'fecha' => now()->toDateTimeString(),
+                'ip' => request()->ip(),
+                'intento' => 'credencial',
+            ]);
+
+            return redirect()->route('affiliate.profile')
+                ->with('status', 'Su registro se encuentra restringido. Mientras mantenga este estado no podrá realizar modificaciones ni acceder a su credencial.');
+        }
+
+        return $this->show($affiliate, $qrCode);
     }
 
     public function pdf(Affiliate $affiliate, CredentialQrCode $qrCode): Response
@@ -47,6 +68,7 @@ class CredentialController extends Controller
             'qrDataUri' => $qrCode->dataUri($credential->qr_payload, 260),
             'photoDataUri' => $this->photoDataUri($affiliate),
             'logoDataUri' => $this->systemLogoDataUri(),
+            'institution' => SystemSetting::institutional(),
         ])->setPaper([0, 0, 242.65, 153.07], 'landscape');
 
         return $pdf->download('credencial-'.$affiliate->ci.'.pdf');
@@ -66,6 +88,7 @@ class CredentialController extends Controller
             'qrDataUri' => $qrCode->dataUri($credential->qr_payload),
             'photoDataUri' => $this->photoDataUri($affiliate),
             'logoDataUri' => $this->systemLogoDataUri(),
+            'institution' => SystemSetting::institutional(),
         ]);
     }
 
@@ -126,11 +149,11 @@ class CredentialController extends Controller
 
     private function photoDataUri(Affiliate $affiliate): ?string
     {
-        if (! $affiliate->photo_path || ! Storage::disk('local')->exists($affiliate->photo_path)) {
+        if (! $affiliate->hasPhoto()) {
             return null;
         }
 
-        $path = Storage::disk('local')->path($affiliate->photo_path);
+        $path = Storage::disk('public')->path($affiliate->photo_path);
         $mime = mime_content_type($path) ?: 'image/jpeg';
 
         return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($path));
@@ -138,15 +161,6 @@ class CredentialController extends Controller
 
     private function systemLogoDataUri(): ?string
     {
-        $path = SystemSetting::getValue('system_logo_path');
-
-        if (! $path || ! Storage::disk('local')->exists($path)) {
-            return null;
-        }
-
-        $absolutePath = Storage::disk('local')->path($path);
-        $mime = mime_content_type($absolutePath) ?: 'image/png';
-
-        return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($absolutePath));
+        return SystemSetting::logoDataUri();
     }
 }

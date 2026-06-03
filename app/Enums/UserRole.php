@@ -7,6 +7,7 @@ enum UserRole: string
     case Administrador = 'Administrador';
     case Secretaria = 'Secretaría';
     case Consulta = 'Consulta';
+    case Afiliado = 'Afiliado';
 
     public function canManageAffiliates(): bool
     {
@@ -16,5 +17,10 @@ enum UserRole: string
     public function canModifyCi(): bool
     {
         return $this === self::Administrador;
+    }
+
+    public function isAffiliate(): bool
+    {
+        return $this === self::Afiliado;
     }
 }

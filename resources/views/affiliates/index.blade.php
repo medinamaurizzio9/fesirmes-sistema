@@ -7,7 +7,15 @@
                 <p class="mt-1 text-sm text-slate-600">Busqueda, consulta y administracion basica.</p>
             </div>
             @if (auth()->user()->role->canManageAffiliates())
-                <a href="{{ route('afiliados.create') }}" class="btn-primary">Nuevo afiliado</a>
+                <div class="flex flex-wrap gap-2">
+                    @if (auth()->user()->role->canModifyCi())
+                        <form method="POST" action="{{ route('afiliados.users.generate') }}">
+                            @csrf
+                            <button class="btn-secondary" type="submit">Generar usuarios</button>
+                        </form>
+                    @endif
+                    <a href="{{ route('afiliados.create') }}" class="btn-primary">Nuevo afiliado</a>
+                </div>
             @endif
         </div>
     </x-slot>

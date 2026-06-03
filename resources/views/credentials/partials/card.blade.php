@@ -1,24 +1,22 @@
 <div class="credential-card" data-credential-card>
     <div class="credential-brand">
-        @if ($logoDataUri)
-            <img src="{{ $logoDataUri }}" alt="Logo FESIRMES" class="credential-logo-img">
+        @if ($institution['system_logo_url'] ?? null)
+            <img src="{{ $institution['system_logo_url'] }}" alt="Logo FESIRMES" class="credential-logo-img">
         @else
             <div class="credential-logo">FE</div>
         @endif
         <div>
-            <div class="credential-title">FESIRMES</div>
-            <div class="credential-subtitle">Credencial Digital Institucional</div>
+            <div class="credential-title">{{ $institution['institution_acronym'] ?? 'FESIRMES' }}</div>
+            <div class="credential-subtitle">{{ $institution['institution_subtitle'] ?? 'Credencial Digital Institucional' }}</div>
         </div>
     </div>
 
     <div class="credential-body">
         <div class="credential-photo">
-            @if ($photoDataUri)
-                <img src="{{ $photoDataUri }}" alt="Fotografia de {{ $affiliate->full_name }}">
-            @elseif ($affiliate->photo_path)
-                <img src="{{ route('afiliados.photo', ['affiliate' => $affiliate, 'v' => $affiliate->updated_at?->timestamp, 'p' => md5($affiliate->photo_path)]) }}" alt="Fotografia de {{ $affiliate->full_name }}">
+            @if ($affiliate->photo_url)
+                <img src="{{ $affiliate->photo_url }}" alt="Fotografia de {{ $affiliate->full_name }}">
             @else
-                <div class="credential-avatar">{{ mb_strtoupper(mb_substr($affiliate->full_name, 0, 2)) }}</div>
+                <div class="credential-avatar">{{ $affiliate->initials() }}</div>
             @endif
         </div>
 
@@ -33,7 +31,7 @@
                 </div>
                 <div>
                     <div class="credential-label">Item</div>
-                    <div class="credential-value">{{ $affiliate->item_principal ?? 'Sin item' }}</div>
+                    <div class="credential-value credential-item-value">{{ $affiliate->item_principal ?? 'Sin item' }}</div>
                 </div>
             </div>
         </div>

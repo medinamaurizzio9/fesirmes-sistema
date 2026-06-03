@@ -24,6 +24,15 @@ class AuthenticatedSessionController extends Controller
 
         AuditLogger::record('login');
 
+        if (Auth::user()?->role?->isAffiliate()) {
+            $affiliate = Auth::user()->affiliate;
+            $route = $affiliate?->hasRestrictedPortalAccess() || ! Auth::user()->must_change_password
+                ? 'affiliate.profile'
+                : 'affiliate.password.edit';
+
+            return redirect()->intended(route($route, absolute: false));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
