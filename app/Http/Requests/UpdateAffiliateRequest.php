@@ -56,6 +56,8 @@ class UpdateAffiliateRequest extends FormRequest
             'sindicato_id' => ['nullable', 'exists:sindicatos,id'],
             'fecha_ingreso_sistema' => ['nullable', 'date'],
             'fecha_primer_descuento_fesirmes' => ['nullable', 'date'],
+            'professional_title' => ['nullable', Rule::in(Affiliate::professionalTitles())],
+            'is_directorio' => ['nullable', 'boolean'],
             'tematica_capacitacion' => ['nullable', 'string', 'max:1000'],
             'deportes' => ['nullable', 'string', 'max:1000'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -77,6 +79,8 @@ class UpdateAffiliateRequest extends FormRequest
             'idioma_ingles' => $this->boolean('idioma_ingles'),
             'idioma_aymara' => $this->boolean('idioma_aymara'),
             'idioma_quechua' => $this->boolean('idioma_quechua'),
+            'is_directorio' => $this->boolean('is_directorio'),
+            'professional_title' => $this->filled('professional_title') ? $this->input('professional_title') : null,
             'item_principal' => $this->filled('item_principal') ? $this->input('item_principal') : null,
         ]);
 

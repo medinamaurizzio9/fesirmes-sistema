@@ -31,6 +31,25 @@
     @endif
 
     <div>
+        <label class="input-label" for="professional_title">Titulo profesional</label>
+        <select id="professional_title" name="professional_title" class="input-field">
+            <option value="">Sin titulo</option>
+            @foreach ($professionalTitles as $professionalTitle)
+                <option value="{{ $professionalTitle }}" @selected(old('professional_title', $affiliate->professional_title) === $professionalTitle)>{{ $professionalTitle }}</option>
+            @endforeach
+        </select>
+        @error('professional_title')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+    </div>
+
+    <div class="flex items-end">
+        <label class="mt-1 flex min-h-10 w-full items-center gap-3 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm">
+            <input type="checkbox" name="is_directorio" value="1" class="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600" @checked(old('is_directorio', $affiliate->is_directorio))>
+            <span>Pertenece al directorio</span>
+        </label>
+        @error('is_directorio')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+    </div>
+
+    <div>
         <label class="input-label" for="nombres">Nombres</label>
         <input id="nombres" name="nombres" value="{{ old('nombres', $affiliate->nombres ?? $affiliate->first_name) }}" class="input-field" required>
         @error('nombres')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror

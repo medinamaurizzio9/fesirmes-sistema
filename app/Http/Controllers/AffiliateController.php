@@ -55,6 +55,7 @@ class AffiliateController extends Controller
             'affiliate' => new Affiliate(['status' => AffiliateStatus::Activo]),
             'statuses' => AffiliateStatus::cases(),
             'itemTypes' => Affiliate::itemTypes(),
+            'professionalTitles' => Affiliate::professionalTitles(),
             'sindicatos' => Sindicato::where('estado', 'activo')->orderBy('nombre')->get(),
         ]);
     }
@@ -86,6 +87,7 @@ class AffiliateController extends Controller
             'affiliate' => $affiliate,
             'statuses' => AffiliateStatus::cases(),
             'itemTypes' => Affiliate::itemTypes(),
+            'professionalTitles' => Affiliate::professionalTitles(),
             'sindicatos' => Sindicato::where('estado', 'activo')
                 ->orWhere('id', $affiliate->sindicato_id)
                 ->orderBy('nombre')
@@ -151,11 +153,12 @@ class AffiliateController extends Controller
             ->all();
 
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
-            $oldPhotoPath = $affiliate?->photo_path;
-            $newPhotoPath = $request->file('photo')->store('afiliados/fotografias', 'public');
+            $oldPhotoPath = Affiliate::normalizeStoragePath($affiliate?->photo_path);
+            $newPhotoPath = $request->file('photo')->store('afiliados', 'public');
 
             if ($oldPhotoPath) {
                 Storage::disk('public')->delete($oldPhotoPath);
+                Storage::disk('local')->delete($oldPhotoPath);
             }
 
             $data['photo_path'] = $newPhotoPath;

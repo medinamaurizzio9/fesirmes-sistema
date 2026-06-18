@@ -27,6 +27,12 @@ class Affiliate extends Model
         'inactivo',
     ];
 
+    public const PROFESSIONAL_TITLES = [
+        'LIC.',
+        'DR.',
+        'DRA.',
+    ];
+
     protected $fillable = [
         'ci',
         'nombres',
@@ -71,6 +77,8 @@ class Affiliate extends Model
         'birth_date',
         'joined_at',
         'status',
+        'professional_title',
+        'is_directorio',
         'notes',
     ];
 
@@ -87,6 +95,7 @@ class Affiliate extends Model
             'fecha_ingreso_sistema' => 'date',
             'fecha_primer_descuento_fesirmes' => 'date',
             'status' => AffiliateStatus::class,
+            'is_directorio' => 'boolean',
         ];
     }
 
@@ -101,6 +110,11 @@ class Affiliate extends Model
         return $newName !== '' ? $newName : trim($this->first_name.' '.$this->last_name);
     }
 
+    public function getFullNameWithTitleAttribute(): string
+    {
+        return trim(collect([$this->professional_title, $this->full_name])->filter()->implode(' '));
+    }
+
     public function initials(): string
     {
         $first = $this->nombres ?: $this->first_name ?: $this->full_name ?: 'A';
@@ -111,21 +125,75 @@ class Affiliate extends Model
 
     public function hasPhoto(): bool
     {
-        return filled($this->photo_path) && Storage::disk('public')->exists($this->photo_path);
+        $path = $this->normalizedPhotoPath();
+
+        return filled($path) && (
+            Storage::disk('public')->exists($path)
+            || Storage::disk('local')->exists($path)
+        );
     }
 
     public function getPhotoUrlAttribute(): ?string
     {
-        if (! $this->hasPhoto()) {
+        $path = $this->normalizedPhotoPath();
+
+        if (! $path) {
             return null;
         }
 
-        return Storage::disk('public')->url($this->photo_path);
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->url($path).'?v='.Storage::disk('public')->lastModified($path);
+        }
+
+        if (Storage::disk('local')->exists($path)) {
+            $absolutePath = Storage::disk('local')->path($path);
+            $mime = mime_content_type($absolutePath) ?: 'image/jpeg';
+
+            return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($absolutePath));
+        }
+
+        return null;
     }
 
     public function photoUrl(): ?string
     {
         return $this->photo_url;
+    }
+
+    public function photoAbsolutePath(): ?string
+    {
+        $path = $this->normalizedPhotoPath();
+
+        if (! $path) {
+            return null;
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->path($path);
+        }
+
+        if (Storage::disk('local')->exists($path)) {
+            return Storage::disk('local')->path($path);
+        }
+
+        return null;
+    }
+
+    public function normalizedPhotoPath(): ?string
+    {
+        return self::normalizeStoragePath($this->photo_path);
+    }
+
+    public static function normalizeStoragePath(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        $path = str_replace('\\', '/', ltrim($path, '/'));
+        $path = preg_replace('#^(storage/app/(public|private)|app/(public|private)|storage|public|private)/#', '', $path);
+
+        return $path ?: null;
     }
 
     public function portalStatusValue(): string
@@ -146,6 +214,11 @@ class Affiliate extends Model
     public static function itemTypes(): array
     {
         return self::ITEM_TYPES;
+    }
+
+    public static function professionalTitles(): array
+    {
+        return self::PROFESSIONAL_TITLES;
     }
 
     public function credential(): HasOne

@@ -1,4 +1,8 @@
 <div class="credential-card" data-credential-card>
+    @if ($affiliate->is_directorio)
+        <div class="credential-directorio">DIRECTORIO</div>
+    @endif
+
     <div class="credential-brand">
         @if ($institution['system_logo_url'] ?? null)
             <img src="{{ $institution['system_logo_url'] }}" alt="Logo FESIRMES" class="credential-logo-img">
@@ -22,7 +26,7 @@
 
         <div class="credential-data">
             <div class="credential-label">Nombre completo</div>
-            <div class="credential-name">{{ $affiliate->full_name }}</div>
+            <div class="credential-name">{{ $affiliate->full_name_with_title }}</div>
 
             <div class="credential-grid">
                 <div>

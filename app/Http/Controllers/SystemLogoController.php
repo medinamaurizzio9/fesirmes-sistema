@@ -43,11 +43,12 @@ class SystemLogoController extends Controller
         $oldPath = SystemSetting::logoPath();
         if ($request->hasFile('logo') && $oldPath) {
             Storage::disk('public')->delete($oldPath);
+            Storage::disk('local')->delete($oldPath);
         }
 
         $path = $oldPath;
         if ($request->hasFile('logo')) {
-            $path = $validated['logo']->store('sistema/logo', 'public');
+            $path = $validated['logo']->store('sistema', 'public');
             SystemSetting::setValue('system_logo_path', $path);
         }
 
@@ -58,10 +59,10 @@ class SystemLogoController extends Controller
 
     public function downloadPng(): Response
     {
-        $path = SystemSetting::logoPath();
-        abort_unless($path && Storage::disk('public')->exists($path), 404);
+        $path = SystemSetting::logoAbsolutePath();
+        abort_unless($path, 404);
 
-        $png = $this->transparentPng(Storage::disk('public')->path($path));
+        $png = $this->transparentPng($path);
 
         return response($png, 200, [
             'Content-Type' => 'image/png',

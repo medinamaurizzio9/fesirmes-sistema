@@ -11,7 +11,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class CredentialController extends Controller
@@ -149,11 +148,12 @@ class CredentialController extends Controller
 
     private function photoDataUri(Affiliate $affiliate): ?string
     {
-        if (! $affiliate->hasPhoto()) {
+        $path = $affiliate->photoAbsolutePath();
+
+        if (! $path) {
             return null;
         }
 
-        $path = Storage::disk('public')->path($affiliate->photo_path);
         $mime = mime_content_type($path) ?: 'image/jpeg';
 
         return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($path));

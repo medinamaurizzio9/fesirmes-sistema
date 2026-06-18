@@ -106,10 +106,11 @@ class AffiliatePortalController extends Controller
             ->all();
 
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
-            $oldPhoto = $affiliate->photo_path;
-            $validated['photo_path'] = $request->file('photo')->store('afiliados/fotografias', 'public');
+            $oldPhoto = Affiliate::normalizeStoragePath($affiliate->photo_path);
+            $validated['photo_path'] = $request->file('photo')->store('afiliados', 'public');
             if ($oldPhoto) {
                 Storage::disk('public')->delete($oldPhoto);
+                Storage::disk('local')->delete($oldPhoto);
             }
         }
 

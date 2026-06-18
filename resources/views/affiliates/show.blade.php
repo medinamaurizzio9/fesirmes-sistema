@@ -46,6 +46,16 @@
                 </dl>
                 <dl class="grid gap-0 divide-y divide-slate-100 border-t border-slate-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
                     <div class="p-5">
+                        <dt class="text-sm font-medium text-slate-500">Titulo profesional</dt>
+                        <dd class="mt-1 font-semibold text-slate-950">{{ $affiliate->professional_title ?? 'Sin titulo' }}</dd>
+                    </div>
+                    <div class="p-5">
+                        <dt class="text-sm font-medium text-slate-500">Pertenece al directorio</dt>
+                        <dd class="mt-1 font-semibold text-slate-950">{{ $affiliate->is_directorio ? 'Si' : 'No' }}</dd>
+                    </div>
+                </dl>
+                <dl class="grid gap-0 divide-y divide-slate-100 border-t border-slate-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                    <div class="p-5">
                         <dt class="text-sm font-medium text-slate-500">Lugar y fecha de nacimiento</dt>
                         <dd class="mt-1 text-slate-950">{{ $affiliate->lugar_fecha_nacimiento ?? 'Sin dato' }}</dd>
                     </div>

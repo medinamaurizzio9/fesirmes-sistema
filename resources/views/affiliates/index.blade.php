@@ -94,7 +94,12 @@
                             <td class="whitespace-nowrap px-5 py-4 font-semibold text-slate-900">{{ $affiliate->ci }}</td>
                             <td class="px-5 py-4">
                                 <div class="font-semibold text-slate-900">{{ $affiliate->full_name }}</div>
-                                <div class="text-xs text-slate-500">{{ $affiliate->lugar_trabajo ?? 'Afiliado #'.$affiliate->id }}</div>
+                                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                    <span>{{ $affiliate->lugar_trabajo ?? 'Afiliado #'.$affiliate->id }}</span>
+                                    @if ($affiliate->is_directorio)
+                                        <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-inset ring-emerald-200">Directorio</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-5 py-4 text-slate-600">{{ $affiliate->sindicato?->sigla ?? $affiliate->sindicato?->nombre ?? 'Sin sindicato' }}</td>
                             <td class="px-5 py-4">
@@ -133,6 +138,11 @@
                             <div class="min-w-0">
                                 <div class="truncate font-semibold text-slate-950">{{ $affiliate->full_name }}</div>
                                 <div class="mt-1 text-sm text-slate-500">C.I. {{ $affiliate->ci }}</div>
+                                @if ($affiliate->is_directorio)
+                                    <div class="mt-2">
+                                        <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700 ring-1 ring-inset ring-emerald-200">Directorio</span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                         <span class="status-badge status-{{ $affiliate->status->value }}">{{ $affiliate->status->value }}</span>

@@ -8,6 +8,7 @@
         body { margin: 0; font-family: DejaVu Sans, sans-serif; color: #0f172a; }
         .credential-card { width: 85.6mm; height: 54mm; overflow: hidden; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; position: relative; }
         .credential-card:before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 8px; background: #155e75; }
+        .credential-directorio { position: absolute; top: 13px; right: 12px; color: #15803d; font-size: 11px; line-height: 1; font-weight: bold; text-transform: uppercase; }
         .credential-brand { padding: 13px 12px 6px; display: table; width: 100%; }
         .credential-logo { display: table-cell; width: 28px; height: 28px; border-radius: 5px; background: #155e75; color: #fff; text-align: center; vertical-align: middle; font-weight: bold; font-size: 10px; }
         .credential-logo-img { display: table-cell; width: 28px; height: 28px; object-fit: contain; border-radius: 5px; }
@@ -35,6 +36,10 @@
 </head>
 <body>
     <div class="credential-card">
+        @if ($affiliate->is_directorio)
+            <div class="credential-directorio">DIRECTORIO</div>
+        @endif
+
         <div class="credential-brand">
             @if ($logoDataUri)
                 <img src="{{ $logoDataUri }}" alt="Logo" class="credential-logo-img">
@@ -56,7 +61,7 @@
             </div>
             <div class="credential-data">
                 <div class="credential-label">Nombre completo</div>
-                <div class="credential-name">{{ $affiliate->full_name }}</div>
+                <div class="credential-name">{{ $affiliate->full_name_with_title }}</div>
                 <div class="credential-grid">
                     <div>
                         <div class="credential-label">C.I.</div>

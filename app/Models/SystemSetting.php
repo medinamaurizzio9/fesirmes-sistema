@@ -45,43 +45,84 @@ class SystemSetting extends Model
 
     public static function logoPath(): ?string
     {
-        $path = self::getValue('system_logo_path');
-
-        if (! $path) {
-            return null;
-        }
-
-        $path = ltrim($path, '/');
-        $path = preg_replace('#^(storage|public)/#', '', $path);
-
-        return $path ?: null;
+        return self::normalizeStoragePath(self::getValue('system_logo_path'));
     }
 
     public static function hasLogo(): bool
     {
         $path = self::logoPath();
 
-        return filled($path) && Storage::disk('public')->exists($path);
+        return filled($path) && (
+            Storage::disk('public')->exists($path)
+            || Storage::disk('local')->exists($path)
+        );
     }
 
     public static function logoUrl(): ?string
     {
-        if (! self::hasLogo()) {
+        $path = self::logoPath();
+
+        if (! $path) {
             return null;
         }
 
-        return Storage::disk('public')->url(self::logoPath());
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->url($path).'?v='.Storage::disk('public')->lastModified($path);
+        }
+
+        if (Storage::disk('local')->exists($path)) {
+            return self::dataUriFromAbsolutePath(Storage::disk('local')->path($path), 'image/png');
+        }
+
+        return null;
     }
 
     public static function logoDataUri(): ?string
     {
-        if (! self::hasLogo()) {
+        $path = self::logoAbsolutePath();
+
+        if (! $path) {
             return null;
         }
 
-        $absolutePath = Storage::disk('public')->path(self::logoPath());
-        $mime = mime_content_type($absolutePath) ?: 'image/png';
+        return self::dataUriFromAbsolutePath($path, 'image/png');
+    }
 
-        return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($absolutePath));
+    public static function logoAbsolutePath(): ?string
+    {
+        $path = self::logoPath();
+
+        if (! $path) {
+            return null;
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->path($path);
+        }
+
+        if (Storage::disk('local')->exists($path)) {
+            return Storage::disk('local')->path($path);
+        }
+
+        return null;
+    }
+
+    public static function normalizeStoragePath(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        $path = str_replace('\\', '/', ltrim($path, '/'));
+        $path = preg_replace('#^(storage/app/(public|private)|app/(public|private)|storage|public|private)/#', '', $path);
+
+        return $path ?: null;
+    }
+
+    private static function dataUriFromAbsolutePath(string $path, string $fallbackMime): string
+    {
+        $mime = mime_content_type($path) ?: $fallbackMime;
+
+        return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($path));
     }
 }
